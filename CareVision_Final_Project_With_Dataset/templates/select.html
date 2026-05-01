@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CareVision | Select Disease</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #020617, #0f172a);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+
+        .box {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 50px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            width: 500px;
+            max-width: 90%;
+        }
+
+           h1 {
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, #22c55e, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text; /* ADD THIS LINE */
+            font-size: 36px;
+        }
+
+        .disease-option {
+            display: block;
+            text-decoration: none;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            padding: 18px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+
+        .disease-option:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        }
+
+        .disease-option.heart {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+
+        .disease-option.heart:hover {
+            background: linear-gradient(135deg, #b91c1c, #dc2626);
+        }
+
+        .disease-option.diabetes {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .disease-option.diabetes:hover {
+            background: linear-gradient(135deg, #15803d, #16a34a);
+        }
+
+        .logout-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .logout-link:hover {
+            color: #38bdf8;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>🧠 CareVision Dashboard</h1>
+    <p style="color: #94a3b8; margin-bottom: 30px;">Select a disease to predict</p>
+
+    <a href="/heart" class="disease-option heart">❤️ Heart Disease Prediction</a>
+    <a href="/diabetes" class="disease-option diabetes">🩸 Diabetes Prediction</a>
+
+    <a href="/logout" class="logout-link">← Logout</a>
+</div>
+
+</body>
+</html>

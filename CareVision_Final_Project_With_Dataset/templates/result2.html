@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CareVision | Diabetes Result</title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #020617, #0f172a);
+        }
+
+        .result-card {
+            background: #020617;
+            padding: 35px;
+            width: 420px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(34,197,94,0.35);
+            animation: fadeIn 0.8s ease-in-out;
+            color: white;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #22c55e;
+        }
+
+        .status {
+            font-size: 26px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        /* Dynamic color classes */
+        .status-high {
+            color: #ef4444; /* red */
+        }
+
+        .status-low {
+            color: #22c55e; /* green */
+        }
+
+        .info {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .score {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #22c55e;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 30px;
+            background: #22c55e;
+            color: #020617;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(34,197,94,0.4);
+        }
+
+        .nav-link {
+            display: block;
+            margin-top: 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-link:hover {
+            color: #38bdf8;
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="result-card">
+    <h2>🩸 Diabetes Prediction Result</h2>
+
+    <!-- FIXED: Using class instead of inline style with Jinja -->
+    <div class="status {% if pred == 1 %}status-high{% else %}status-low{% endif %}">
+        Risk Status: {% if pred == 1 %}HIGH RISK ❌{% else %}LOW RISK ✅{% endif %}
+    </div>
+
+    <div class="info">
+        📊 Probability: <b>{{ prob }}%</b>
+    </div>
+
+    <div class="score">
+        🩺 Health Score: {{ health }}/100
+    </div>
+
+    <a href="/diabetes" class="back-btn">⬅ Make Another Prediction</a>
+    <a href="/select" class="nav-link">← Back to Disease Selection</a>
+    <a href="/logout" class="nav-link">Logout</a>
+</div>
+
+</body>
+</html>

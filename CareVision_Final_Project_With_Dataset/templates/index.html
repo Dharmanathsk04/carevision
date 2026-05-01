@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CareVision | Heart Disease Prediction</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top, #0f172a, #020617);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e5e7eb;
+            padding: 20px;
+        }
+
+        .container {
+            width: 1100px;
+            max-width: 95%;
+            padding: 40px;
+            border-radius: 24px;
+            background: linear-gradient(145deg, rgba(15,23,42,0.95), rgba(2,6,23,0.95));
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .header h1 {
+            font-size: 32px;
+            background: linear-gradient(90deg, #22c55e, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text; /* ADD THIS LINE */
+        }
+
+        .header p { color: #94a3b8; }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .feature-box {
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(15,23,42,0.9);
+            border: 1px solid rgba(34,197,94,0.25);
+            text-align: center;
+        }
+
+        .feature-box h4 { color: #22c55e; }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(2,1fr);
+            gap: 20px 30px;
+        }
+
+        label { font-weight: 600; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            border-radius: 10px;
+            border: 1px solid rgba(148,163,184,0.3);
+            background: rgba(2,6,23,0.8);
+            color: #e5e7eb;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 8px rgba(34,197,94,0.5);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .full { grid-column: span 2; }
+
+        button {
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #16a34a, #2563eb);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            transition: 0.3s;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #94a3b8;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #38bdf8;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media(max-width:900px){
+            .features, form { grid-template-columns: 1fr; }
+            .full { grid-column: span 1; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>💚 CareVision Heart Disease Prediction</h1>
+        <p>AI-powered early heart risk assessment system</p>
+    </div>
+
+    <div class="features">
+        <div class="feature-box"><h4>🧠 ML Prediction</h4><p>Medical dataset trained</p></div>
+        <div class="feature-box"><h4>⚡ Fast Results</h4><p>Instant risk analysis</p></div>
+        <div class="feature-box"><h4>🏥 Trusted UI</h4><p>Medical-grade design</p></div>
+    </div>
+
+    <!-- FORM ACTION IS CORRECT -->
+    <form method="post" action="/heart">
+
+        <div>
+            <label>Age</label>
+            <input type="number" name="age" min="1" max="120" required>
+            <div class="hint">Patient's age in years</div>
+        </div>
+
+        <div>
+            <label>Sex (0=Female, 1=Male)</label>
+            <input type="number" name="sex" min="0" max="1" required>
+            <div class="hint">0 = Female, 1 = Male</div>
+        </div>
+
+        <div>
+            <label>Chest Pain Type (0-3)</label>
+            <input type="number" name="cp" min="0" max="3" required>
+            <div class="hint">0: Typical angina, 1: Atypical, 2: Non-anginal, 3: Asymptomatic</div>
+        </div>
+
+        <div>
+            <label>Resting BP (mm Hg)</label>
+            <input type="number" name="trestbps" min="80" max="200" required>
+            <div class="hint">Resting blood pressure</div>
+        </div>
+
+        <div>
+            <label>Cholesterol (mg/dl)</label>
+            <input type="number" name="chol" min="100" max="600" required>
+            <div class="hint">Serum cholesterol level</div>
+        </div>
+
+        <div>
+            <label>Fasting Blood Sugar</label>
+            <input type="number" name="fbs" min="0" max="1" required>
+            <div class="hint">0: ≤120 mg/dl, 1: >120 mg/dl</div>
+        </div>
+
+        <div>
+            <label>Rest ECG (0-2)</label>
+            <input type="number" name="restecg" min="0" max="2" required>
+            <div class="hint">0: Normal, 1: ST-T wave abnormality, 2: Left ventricular hypertrophy</div>
+        </div>
+
+        <div>
+            <label>Max Heart Rate</label>
+            <input type="number" name="thalach" min="60" max="220" required>
+            <div class="hint">Maximum heart rate achieved</div>
+        </div>
+
+        <div>
+            <label>Exercise Angina</label>
+            <input type="number" name="exang" min="0" max="1" required>
+            <div class="hint">0: No, 1: Yes</div>
+        </div>
+
+        <div>
+            <label>Oldpeak</label>
+            <input type="number" step="0.1" name="oldpeak" min="0" max="10" required>
+            <div class="hint">ST depression induced by exercise</div>
+        </div>
+
+        <div>
+            <label>ST Slope (0-2)</label>
+            <input type="number" name="slope" min="0" max="2" required>
+            <div class="hint">0: Upsloping, 1: Flat, 2: Downsloping</div>
+        </div>
+
+        <div>
+            <label>Major Vessels (0-3)</label>
+            <input type="number" name="ca" min="0" max="3" required>
+            <div class="hint">Number of major vessels colored by fluoroscopy</div>
+        </div>
+
+        <div class="full">
+            <label>Thalassemia (1-3)</label>
+            <input type="number" name="thal" min="1" max="3" required>
+            <div class="hint">1: Normal, 2: Fixed defect, 3: Reversible defect</div>
+        </div>
+
+        <div class="full">
+            <button type="submit">🔍 Predict Heart Disease Risk</button>
+        </div>
+
+    </form>
+
+    <div class="footer">
+        <a href="/select" class="back-link">← Back to Disease Selection</a><br>
+        <a href="/logout" class="back-link" style="margin-top: 10px;">Logout</a><br>
+        Built with 💚 using Machine Learning | CareVision
+    </div>
+
+</div>
+
+</body>
+</html>

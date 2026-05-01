@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HealthHub — Your Health Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy-deepest: #020d1a;
+      --navy-deep: #041428;
+      --navy-mid: #071e38;
+      --navy-card: #0a2540;
+      --navy-light: #0d2d4e;
+      --green-vivid: #00e676;
+      --green-mid: #00c853;
+      --green-soft: #1de9b6;
+      --green-muted: rgba(0,230,118,0.12);
+      --green-border: rgba(0,230,118,0.2);
+      --white: #f0faff;
+      --muted: rgba(180,220,255,0.55);
+      --muted-light: rgba(180,220,255,0.75);
+      --radius-sm: 10px;
+      --radius: 16px;
+      --radius-lg: 24px;
+      --maxw: 1180px;
+      --glow: 0 0 40px rgba(0,230,118,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--navy-deepest);
+      color: var(--white);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* ─── BACKGROUND ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(0,230,118,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 90% 100%, rgba(0,100,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 100% 100% at 50% 50%, var(--navy-deep) 0%, var(--navy-deepest) 100%);
+      pointer-events: none;
+    }
+
+    /* subtle grid overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(0,230,118,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,230,118,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative; z-index: 1;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 0 24px 48px;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 0 36px;
+      border-bottom: 1px solid rgba(0,230,118,0.1);
+      margin-bottom: 44px;
+    }
+
+    .brand { display: flex; gap: 16px; align-items: center; }
+
+    .logo {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-soft));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 18px;
+      color: var(--navy-deepest);
+      box-shadow: 0 0 0 1px var(--green-border), 0 8px 32px rgba(0,200,83,0.25);
+      flex-shrink: 0;
+    }
+
+    .brand-text h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+    }
+
+    .brand-text h1 span { color: var(--green-vivid); }
+    .brand-text p { font-size: 12px; color: var(--muted); margin-top: 2px; letter-spacing: 0.4px; text-transform: uppercase; }
+
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      font-size: 13px; color: var(--muted-light); text-decoration: none;
+      font-weight: 500; letter-spacing: 0.2px;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--green-vivid); }
+
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+
+    .search-wrap {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius-sm);
+      padding: 9px 14px;
+      transition: border-color 0.2s;
+    }
+    .search-wrap:focus-within { border-color: var(--green-border); box-shadow: 0 0 0 3px rgba(0,230,118,0.06); }
+    .search-wrap svg { flex-shrink: 0; opacity: 0.4; }
+    .search-wrap input {
+      background: transparent; border: 0; outline: none;
+      color: var(--white); font-family: 'DM Sans', sans-serif;
+      font-size: 13px; width: 190px;
+    }
+    .search-wrap input::placeholder { color: var(--muted); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green-mid), var(--green-soft));
+      border: 0; border-radius: var(--radius-sm);
+      padding: 10px 20px;
+      color: var(--navy-deepest);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600; font-size: 13px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(0,200,83,0.25);
+      white-space: nowrap;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 28px rgba(0,200,83,0.35); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(0,230,118,0.2);
+      border-radius: var(--radius-sm);
+      padding: 9px 16px;
+      color: var(--green-vivid);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500; font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-ghost:hover { background: var(--green-muted); border-color: var(--green-vivid); }
+
+    .btn-icon {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius-sm);
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--muted-light);
+      transition: border-color 0.2s, color 0.2s;
+      font-size: 16px;
+    }
+    .btn-icon:hover { border-color: var(--green-border); color: var(--green-vivid); }
+
+    .dashboard-btn {
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 10px;
+    }
+    .dashboard-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(34,197,94,0.3);
+    }
+
+    /* ─── HERO BANNER ─── */
+    .hero-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      background: var(--navy-card);
+      border: 1px solid rgba(0,230,118,0.12);
+      border-radius: var(--radius-lg);
+      padding: 40px 48px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute; top: -80px; right: -40px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(0,230,118,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-text { max-width: 560px; }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-muted);
+      border: 1px solid var(--green-border);
+      border-radius: 100px;
+      padding: 4px 12px 4px 8px;
+      font-size: 11px; font-weight: 600;
+      color: var(--green-vivid);
+      letter-spacing: 0.5px; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero-tag::before { content: '●'; font-size: 8px; }
+    .hero-text h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 36px;
+      line-height: 1.12; letter-spacing: -0.8px;
+      margin-bottom: 14px;
+    }
+    .hero-text h2 em { font-style: normal; color: var(--green-vivid); }
+    .hero-text p { font-size: 15px; color: var(--muted-light); line-height: 1.65; }
+    .hero-stats {
+      display: flex; gap: 32px; flex-shrink: 0;
+    }
+    .stat {
+      text-align: center;
+      padding: 20px 24px;
+      background: rgba(0,230,118,0.05);
+      border: 1px solid var(--green-border);
+      border-radius: var(--radius);
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 28px;
+      color: var(--green-vivid);
+      line-height: 1;
+    }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 6px; letter-spacing: 0.3px; }
+
+    /* ─── LAYOUT ─── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    /* ─── SECTION HEADING ─── */
+    .section-head {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-head .icon-badge {
+      width: 34px; height: 34px;
+      background: var(--green-muted);
+      border: 1px solid var(--green-border);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .section-head h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 16px;
+      letter-spacing: -0.2px;
+    }
+    .section-head p { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--navy-card);
+      border: 1px solid rgba(255,255,255,0.055);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .card:hover { border-color: rgba(0,230,118,0.2); box-shadow: var(--glow); }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ─── INPUTS ─── */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 12px;
+      color: var(--muted-light); font-weight: 500;
+      letter-spacing: 0.3px; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--green-border);
+      box-shadow: 0 0 0 3px rgba(0,230,118,0.07);
+    }
+    .field input::placeholder { color: rgba(255,255,255,0.2); }
+    .field select option { background: var(--navy-card); }
+
+    .input-row { display: flex; gap: 10px; }
+    .input-row .field { flex: 1; }
+
+    /* ─── RESULT BOX ─── */
+    .result-box {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      background: rgba(0,230,118,0.05);
+      border: 1px solid rgba(0,230,118,0.12);
+      font-size: 13.5px; line-height: 1.65;
+      color: var(--muted-light);
+      min-height: 42px;
+    }
+    .result-box strong { color: var(--green-vivid); }
+    .result-box em { color: var(--green-soft); font-style: normal; }
+    .result-box:empty { display: none; }
+
+    /* ─── BMI BAR ─── */
+    .bmi-bar-wrap { margin-top: 12px; }
+    .bmi-bar-track {
+      height: 6px; border-radius: 100px;
+      background: rgba(255,255,255,0.06);
+      overflow: hidden; margin-bottom: 4px;
+    }
+    .bmi-bar-fill {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, var(--green-vivid), var(--green-soft));
+      width: 0; transition: width 0.6s cubic-bezier(.4,0,.2,1);
+    }
+    .bmi-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+
+    /* ─── TIPS ─── */
+    .tip-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .tip-item:last-child { border-bottom: 0; padding-bottom: 0; }
+    .tip-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green-vivid);
+      flex-shrink: 0; margin-top: 7px;
+      box-shadow: 0 0 8px var(--green-vivid);
+    }
+    .tip-item span { font-size: 13.5px; color: var(--muted-light); line-height: 1.55; }
+
+    /* ─── QUICK RESOURCES ─── */
+    .resource-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--muted-light);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; text-align: left; width: 100%;
+      margin-bottom: 8px;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+    .resource-btn:last-child { margin-bottom: 0; }
+    .resource-btn:hover { border-color: var(--green-border); background: var(--green-muted); color: var(--white); }
+    .resource-btn .rb-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--green-muted); border: 1px solid var(--green-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+
+    /* ─── FAQ ─── */
+    details {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 14px 0;
+    }
+    details:first-of-type { padding-top: 0; }
+    details:last-of-type { border-bottom: 0; padding-bottom: 0; }
+    summary {
+      font-size: 14px; font-weight: 500; color: var(--white);
+      cursor: pointer; list-style: none;
+      display: flex; justify-content: space-between; align-items: center;
+      transition: color 0.2s;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: '+'; font-size: 18px; font-weight: 300;
+      color: var(--green-vivid); line-height: 1;
+      transition: transform 0.2s;
+    }
+    details[open] summary::after { content: '−'; }
+    details[open] summary { color: var(--green-vivid); }
+    details p { font-size: 13px; color: var(--muted-light); margin-top: 10px; line-height: 1.65; }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+    .appt-card {
+      background: var(--navy-card);
+      border: 1px solid rgba(0,230,118,0.15);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      box-shadow: 0 0 60px rgba(0,230,118,0.05);
+    }
+    .appt-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 17px;
+      margin-bottom: 4px;
+    }
+    .appt-card .subtitle { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+
+    .saved-list { margin-top: 16px; }
+    .saved-list h4 {
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.6px; color: var(--muted);
+      font-weight: 600; margin-bottom: 10px;
+    }
+    .saved-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px; font-size: 12.5px;
+    }
+    .saved-item:last-child { margin-bottom: 0; }
+    .saved-item .si-name { color: var(--white); font-weight: 500; }
+    .saved-item .si-date { color: var(--green-soft); font-size: 11px; }
+
+    .empty-state { font-size: 12.5px; color: var(--muted); text-align: center; padding: 14px 0; }
+
+    /* ─── EMERGENCY CARD ─── */
+    .emergency-card {
+      background: var(--navy-card);
+      border: 1px solid rgba(255,255,255,0.055);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+    .emergency-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 15px;
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px;
+    }
+    .emergency-card h3::before { content: '🚨'; font-size: 14px; }
+
+    .hotline {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .hotline:last-child { border-bottom: 0; }
+    .hotline-name { font-size: 12px; color: var(--muted-light); }
+    .hotline-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 14px;
+      color: var(--green-vivid);
+    }
+
+    /* ─── FORM ACTIONS ─── */
+    .form-actions { display: flex; gap: 8px; margin-top: 4px; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative; z-index: 1;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-brand { display: flex; align-items: center; gap: 10px; }
+    .footer-brand .logo-sm {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-soft));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 11px;
+      color: var(--navy-deepest);
+    }
+    .footer-brand span { font-size: 13px; color: var(--muted); }
+    footer p { font-size: 12px; color: var(--muted); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: none; }
+    }
+    .fade-up { animation: fadeUp 0.55s ease forwards; }
+    .fade-up:nth-child(1) { animation-delay: 0s; }
+    .fade-up:nth-child(2) { animation-delay: 0.1s; }
+    .fade-up:nth-child(3) { animation-delay: 0.2s; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 940px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .sidebar { order: -1; }
+      .hero-banner { flex-direction: column; padding: 30px; }
+      .hero-stats { width: 100%; justify-content: center; }
+      .nav-links { display: none; }
+      .search-wrap input { width: 130px; }
+      header { flex-wrap: wrap; gap: 14px; }
+    }
+    @media (max-width: 640px) {
+      .card-grid { grid-template-columns: 1fr; }
+      .hero-text h2 { font-size: 26px; }
+      .hero-banner { padding: 24px; }
+      footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+
+    /* ─── SYMPTOM SELECT ─── */
+    .symptom-options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .symptom-chip {
+      padding: 6px 12px;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 12px; color: var(--muted-light);
+      cursor: pointer; transition: all 0.18s;
+      user-select: none;
+    }
+    .symptom-chip:hover { border-color: rgba(0,230,118,0.3); color: var(--white); }
+    .symptom-chip.active {
+      background: var(--green-muted);
+      border-color: var(--green-vivid);
+      color: var(--green-vivid);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="fade-up">
+    <div class="brand">
+      <div class="logo">HH</div>
+      <div class="brand-text">
+        <h1>Health<span>Hub</span></h1>
+        <p>Your personal health portal</p>
+      </div>
+    </div>
+
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="#bmi-section">BMI</a>
+      <a href="#symptoms-section">Symptoms</a>
+      <a href="#tips-section">Tips</a>
+      <a href="#appt-section">Appointments</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="dashboard-btn" onclick="window.location.href='/dashboard'">
+        <span>📊</span> Dashboard
+      </button>
+      <div class="search-wrap" role="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/>
+          <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <input id="searchInput" placeholder="Search tips, symptoms…" aria-label="Search" />
+      </div>
+      <button class="btn-icon" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+      <button class="btn-primary" id="ctaStart">Get Started</button>
+    </div>
+  </header>
+
+  <!-- HERO BANNER -->
+  <div class="hero-banner fade-up">
+    <div class="hero-text">
+      <div class="hero-tag">Live · Frontend Only · No Signup Needed</div>
+      <h2>Your <em>quick health</em> companion — always on hand</h2>
+      <p>Instant tools for BMI calculation, symptom guidance, and appointment planning. All running locally in your browser, with zero data sent to any server.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">4+</div>
+        <div class="stat-label">Health Tools</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Private & Local</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-col" style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- BMI -->
+      <div class="card fade-up" id="bmi-section">
+        <div class="section-head">
+          <div class="icon-badge">⚖️</div>
+          <div>
+            <h3>BMI Calculator</h3>
+            <p>Body Mass Index screening tool</p>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="field">
+            <label for="weight">Weight (kg)</label>
+            <input id="weight" type="number" min="1" placeholder="e.g. 70" />
+          </div>
+          <div class="field">
+            <label for="height">Height (cm)</label>
+            <input id="height" type="number" min="30" placeholder="e.g. 175" />
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary" onclick="calculateBMI()">Calculate BMI</button>
+          <button class="btn-ghost" onclick="clearBMI()">Clear</button>
+        </div>
+        <div id="bmiResult" class="result-box" aria-live="polite"></div>
+        <div class="bmi-bar-wrap" id="bmiBarWrap" style="display:none;">
+          <div class="bmi-bar-track"><div class="bmi-bar-fill" id="bmiBarFill"></div></div>
+          <div class="bmi-labels"><span>Underweight</span><span>Normal</span><span>Overweight</span><span>Obese</span></div>
+        </div>
+      </div>
+
+      <!-- SYMPTOM CHECKER -->
+      <div class="card fade-up" id="symptoms-section">
+        <div class="section-head">
+          <div class="icon-badge">🩺</div>
+          <div>
+            <h3>Symptom Helper</h3>
+            <p>Educational guidance only — always consult a doctor</p>
+          </div>
+        </div>
+        <div class="symptom-options" id="symptomChips" role="group" aria-label="Select symptoms">
+          <span class="symptom-chip" data-sym="Fever" onclick="toggleSym(this)">🌡 Fever</span>
+          <span class="symptom-chip" data-sym="Cough" onclick="toggleSym(this)">😮‍💨 Cough</span>
+          <span class="symptom-chip" data-sym="Headache" onclick="toggleSym(this)">🤕 Headache</span>
+          <span class="symptom-chip" data-sym="Stomach pain" onclick="toggleSym(this)">🫄 Stomach Pain</span>
+          <span class="symptom-chip" data-sym="Shortness of breath" onclick="toggleSym(this)">💨 Breathlessness</span>
+          <span class="symptom-chip" data-sym="Fatigue" onclick="toggleSym(this)">😴 Fatigue</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn-primary" onclick="checkSymptoms()">Check Symptoms</button>
+          <button class="btn-ghost" onclick="resetSymptoms()">Reset</button>
+        </div>
+        <div id="symptomResult" class="result-box" aria-live="polite"></div>
+      </div>
+
+      <!-- TIPS + RESOURCES SIDE BY SIDE -->
+      <div class="card-grid">
+
+        <div class="card fade-up" id="tips-section">
+          <div class="section-head">
+            <div class="icon-badge">🌿</div>
+            <div><h3>Daily Tips</h3><p>Simple habits for better health</p></div>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="tip-item"><div class="tip-dot"></div><span>Walk 30 minutes daily — aim for 7,000–10,000 steps.</span></div>
+            <div class="tip-item"><div class="tip-dot"></div><span>Drink 6–8 glasses of water every day.</span></div>
+            <div class="tip-item"><div class="tip-dot"></div><span>Include 2–3 cups of vegetables per meal.</span></div>
+            <div class="tip-item"><div class="tip-dot"></div><span>Sleep 7–9 hours for adult recovery.</span></div>
+          </div>
+        </div>
+
+        <div class="card fade-up" id="resources-section">
+          <div class="section-head">
+            <div class="icon-badge">📋</div>
+            <div><h3>Quick Resources</h3><p>Download guides instantly</p></div>
+          </div>
+          <div style="margin-top:8px;">
+            <button class="resource-btn" onclick="downloadText('FirstAid','Basic First Aid Steps:\n1. Stay calm and ensure scene safety.\n2. Call emergency services (112).\n3. Check airway, breathing, circulation.\n4. Apply pressure to wounds.\n5. Do not move injured persons unless necessary.\n6. Perform CPR if trained.\n7. Keep the person warm and still.')">
+              <span class="rb-icon">🩹</span>First Aid Guide
+            </button>
+            <button class="resource-btn" onclick="downloadText('Nutrition','Simple Nutrition Tips:\n- Eat a rainbow of vegetables and fruits.\n- Choose whole grains over refined grains.\n- Limit processed foods and added sugars.\n- Include lean protein (fish, legumes, poultry).\n- Healthy fats from olive oil, nuts, avocado.\n- Stay hydrated — aim for 2 litres per day.\n- Reduce sodium and alcohol intake.')">
+              <span class="rb-icon">🥗</span>Nutrition Guide
+            </button>
+            <button class="resource-btn" onclick="downloadText('Sleep','Better Sleep Tips:\n- Stick to a consistent sleep schedule.\n- Avoid screens 1 hour before bed.\n- Keep your room cool and dark.\n- Limit caffeine after 2 PM.\n- Practice relaxation (breathing, light stretching).\n- Avoid large meals before sleep.')">
+              <span class="rb-icon">😴</span>Sleep Guide
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FAQ -->
+      <div class="card fade-up">
+        <div class="section-head">
+          <div class="icon-badge">❓</div>
+          <div><h3>Frequently Asked</h3><p>Quick answers</p></div>
+        </div>
+        <details style="margin-top:8px;">
+          <summary>Is this a medical diagnosis?</summary>
+          <p>No. All tools here are for educational and awareness purposes only. For any medical concerns, please consult a qualified healthcare professional.</p>
+        </details>
+        <details>
+          <summary>How accurate is BMI?</summary>
+          <p>BMI is a screening guideline, not a direct measure of body fat or health. Factors such as muscle mass, age, and gender can affect its interpretation. Use it as one of several health indicators.</p>
+        </details>
+        <details>
+          <summary>Is my appointment data safe?</summary>
+          <p>Yes — all appointment data is stored in your browser's local storage only. Nothing is sent to any server. You can export or clear it at any time.</p>
+        </details>
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="appt-section">
+
+      <!-- APPOINTMENT FORM -->
+      <div class="appt-card">
+        <h3>Book Appointment</h3>
+        <p class="subtitle">Stored locally in your browser — no server needed.</p>
+
+        <form id="apptForm" onsubmit="submitAppt(event)" aria-label="Appointment booking form" novalidate>
+          <div class="field">
+            <label for="name">Full Name</label>
+            <input id="name" type="text" required placeholder="Your full name" />
+          </div>
+          <div class="field">
+            <label for="email">Email Address</label>
+            <input id="email" type="email" required placeholder="you@example.com" />
+          </div>
+          <div class="field">
+            <label for="date">Preferred Date</label>
+            <input id="date" type="date" required />
+          </div>
+          <div class="field">
+            <label for="reason">Reason for Visit</label>
+            <input id="reason" type="text" placeholder="e.g. Annual checkup" />
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" type="submit" style="flex:1;">Save Appointment</button>
+            <button type="button" class="btn-ghost" onclick="exportAppointments()">Export</button>
+          </div>
+        </form>
+
+        <div class="saved-list" id="savedListWrap">
+          <h4>Saved Appointments</h4>
+          <div id="savedList"></div>
+        </div>
+      </div>
+
+      <!-- EMERGENCY -->
+      <div class="emergency-card">
+        <h3>Emergency Contacts</h3>
+        <div class="hotline">
+          <span class="hotline-name">General Emergency</span>
+          <span class="hotline-num">112</span>
+        </div>
+        <div class="hotline">
+          <span class="hotline-name">Poison Control</span>
+          <span class="hotline-num">1800-111-222</span>
+        </div>
+        <div class="hotline">
+          <span class="hotline-name">Health Info Helpline</span>
+          <span class="hotline-num">1075</span>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:14px;">Replace with your local emergency numbers when deploying.</p>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">
+      <div class="logo-sm">HH</div>
+      <span>HealthHub — Frontend health tools demo</span>
+    </div>
+    <p>Accessible · Responsive · No server required · Educational use only</p>
+  </footer>
+
+</div>
+
+<script>
+  /* ─── THEME TOGGLE ─── */
+  const themeBtn = document.getElementById('themeToggle');
+  let lightMode = false;
+  themeBtn.addEventListener('click', () => {
+    lightMode = !lightMode;
+    themeBtn.textContent = lightMode ? '☀️' : '🌙';
+    if (lightMode) {
+      document.documentElement.style.setProperty('--navy-deepest','#f0f7ff');
+      document.documentElement.style.setProperty('--navy-deep','#e0eff9');
+      document.documentElement.style.setProperty('--navy-mid','#d0e7f5');
+      document.documentElement.style.setProperty('--navy-card','#fff');
+      document.documentElement.style.setProperty('--navy-light','#c8e1f0');
+      document.documentElement.style.setProperty('--white','#0a1e30');
+      document.documentElement.style.setProperty('--muted','rgba(10,30,48,0.5)');
+      document.documentElement.style.setProperty('--muted-light','rgba(10,30,48,0.7)');
+      document.documentElement.style.setProperty('--green-muted','rgba(0,180,83,0.08)');
+      document.documentElement.style.setProperty('--green-border','rgba(0,180,83,0.25)');
+    } else {
+      document.documentElement.style.setProperty('--navy-deepest','#020d1a');
+      document.documentElement.style.setProperty('--navy-deep','#041428');
+      document.documentElement.style.setProperty('--navy-mid','#071e38');
+      document.documentElement.style.setProperty('--navy-card','#0a2540');
+      document.documentElement.style.setProperty('--navy-light','#0d2d4e');
+      document.documentElement.style.setProperty('--white','#f0faff');
+      document.documentElement.style.setProperty('--muted','rgba(180,220,255,0.55)');
+      document.documentElement.style.setProperty('--muted-light','rgba(180,220,255,0.75)');
+      document.documentElement.style.setProperty('--green-muted','rgba(0,230,118,0.12)');
+      document.documentElement.style.setProperty('--green-border','rgba(0,230,118,0.2)');
+    }
+  });
+
+  /* ─── SEARCH ─── */
+  document.getElementById('searchInput').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('.card, .appt-card, .emergency-card').forEach(c => {
+      c.style.display = (!q || c.innerText.toLowerCase().includes(q)) ? '' : 'none';
+    });
+  });
+
+  /* ─── BMI ─── */
+  function calculateBMI() {
+    const w = parseFloat(document.getElementById('weight').value);
+    const h = parseFloat(document.getElementById('height').value);
+    const out = document.getElementById('bmiResult');
+    const wrap = document.getElementById('bmiBarWrap');
+    const fill = document.getElementById('bmiBarFill');
+    if (!w || !h || w <= 0 || h <= 30) {
+      out.innerHTML = 'Please enter a valid weight and height.';
+      wrap.style.display = 'none'; return;
+    }
+    const hM = h / 100;
+    const bmi = w / (hM * hM);
+    const rounded = Math.round(bmi * 10) / 10;
+    let cat = '', color = '';
+    if (bmi < 18.5) { cat = 'Underweight'; color = '#64b5f6'; }
+    else if (bmi < 25) { cat = 'Normal weight'; color = '#00e676'; }
+    else if (bmi < 30) { cat = 'Overweight'; color = '#ffd740'; }
+    else { cat = 'Obesity'; color = '#ff5252'; }
+    out.innerHTML = `<strong>BMI: ${rounded}</strong> &nbsp;·&nbsp; <em>${cat}</em><br><span style="font-size:12px;color:var(--muted);">Note: BMI is a screening guideline only, not a complete health measure.</span>`;
+    // Bar: map bmi 15–40 to 0–100%
+    const pct = Math.min(100, Math.max(0, ((bmi - 15) / 25) * 100));
+    wrap.style.display = 'block';
+    fill.style.background = `linear-gradient(90deg, var(--green-vivid), ${color})`;
+    setTimeout(() => fill.style.width = pct + '%', 50);
+  }
+  function clearBMI() {
+    document.getElementById('weight').value = '';
+    document.getElementById('height').value = '';
+    document.getElementById('bmiResult').innerHTML = '';
+    document.getElementById('bmiBarWrap').style.display = 'none';
+    document.getElementById('bmiBarFill').style.width = '0';
+  }
+
+  /* ─── SYMPTOM CHIPS ─── */
+  function toggleSym(el) { el.classList.toggle('active'); }
+  function resetSymptoms() {
+    document.querySelectorAll('.symptom-chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('symptomResult').innerHTML = '';
+  }
+  function checkSymptoms() {
+    const sel = Array.from(document.querySelectorAll('.symptom-chip.active')).map(c => c.dataset.sym);
+    const out = document.getElementById('symptomResult');
+    if (!sel.length) { out.innerHTML = 'Please select one or more symptoms.'; return; }
+    const db = {
+      'Fever': 'Stay hydrated and rest. If temperature exceeds 38.5°C or persists beyond 48 hours, consult a doctor.',
+      'Cough': 'Avoid irritants and stay hydrated. Seek care if cough is severe, prolonged, or accompanied by breathing difficulty.',
+      'Headache': 'Check hydration, rest, and reduce screen time. A sudden severe "thunderclap" headache requires emergency care.',
+      'Stomach pain': 'Observe for vomiting, blood, or severe cramps. Seek immediate care if pain is acute or worsening.',
+      'Shortness of breath': '⚠️ This may indicate a serious condition — seek immediate medical evaluation.',
+      'Fatigue': 'Review sleep quality, stress levels, and diet. Persistent fatigue warrants a blood test and GP consultation.',
+    };
+    out.innerHTML = sel.map(s => `<strong style="color:var(--green-soft);">${s}:</strong> ${db[s]}`).join('<br><br>');
+  }
+
+  /* ─── DOWNLOAD ─── */
+  function downloadText(filename, text) {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename + '.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  /* ─── APPOINTMENTS ─── */
+  function loadAppts() {
+    try { return JSON.parse(localStorage.getItem('hh_appts') || '[]'); } catch { return []; }
+  }
+  function saveAppts(list) { localStorage.setItem('hh_appts', JSON.stringify(list)); renderSaved(); }
+  function submitAppt(e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const date = document.getElementById('date').value;
+    const reason = document.getElementById('reason').value.trim();
+    if (!name || !email || !date) return;
+    const list = loadAppts();
+    list.push({ name, email, date, reason, created: Date.now() });
+    saveAppts(list);
+    e.target.reset();
+  }
+  function renderSaved() {
+    const list = loadAppts();
+    const el = document.getElementById('savedList');
+    if (!list.length) {
+      el.innerHTML = '<p class="empty-state">No appointments saved yet.</p>'; return;
+    }
+    el.innerHTML = list.map((a, i) => `
+      <div class="saved-item">
+        <div>
+          <div class="si-name">${escHtml(a.name)}</div>
+          <div class="si-date">${escHtml(a.reason) || 'No reason given'}</div>
+        </div>
+        <div class="si-date">${a.date}</div>
+      </div>`).join('');
+  }
+  function exportAppointments() {
+    const list = loadAppts();
+    if (!list.length) { alert('No appointments to export.'); return; }
+    const csv = ['Name,Email,Date,Reason,Created']
+      .concat(list.map(a => `"${a.name}","${a.email}","${a.date}","${a.reason}","${new Date(a.created).toISOString()}"`))
+      .join('\n');
+    downloadText('appointments', csv);
+  }
+  function escHtml(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ─── CTA SCROLL ─── */
+  document.getElementById('ctaStart').addEventListener('click', () => {
+    document.getElementById('bmi-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // Init
+  renderSaved();
+</script>
+</body>
+</html>

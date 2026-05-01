@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ Health App</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #00f0ff;
+    --blue: #0072ff;
+    --dark-blue: #000428;
+    --mid-blue: #004e92;
+    --glass: rgba(0, 15, 40, 0.75);
+    --glass-border: rgba(0, 240, 255, 0.2);
+    --glass-border-hover: rgba(0, 240, 255, 0.6);
+    --red: #ff2d55;
+    --green: #00ffb3;
+    --yellow: #ffd60a;
+    --text: #e0f7ff;
+    --text-dim: rgba(224, 247, 255, 0.55);
+  }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--dark-blue);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(0,114,255,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,240,255,0.12) 0%, transparent 60%),
+      linear-gradient(135deg, #000428 0%, #001a4d 50%, #004e92 100%);
+    z-index: -2;
+  }
+
+  /* Grid overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,240,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+  }
+
+  /* Floating orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.15;
+    z-index: -1;
+    animation: float 8s ease-in-out infinite;
+  }
+  .orb1 { width:300px; height:300px; background:var(--cyan); top:-50px; right:10%; animation-delay:0s; }
+  .orb2 { width:200px; height:200px; background:var(--blue); bottom:10%; left:-30px; animation-delay:-3s; }
+  .orb3 { width:150px; height:150px; background:var(--green); bottom:30%; right:20%; animation-delay:-5s; }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-20px) scale(1.05); }
+  }
+
+  /* PAGE SYSTEM */
+  .page { display: none; width: 100%; min-height: 100vh; align-items: center; justify-content: center; padding: 20px; }
+  .page.active { display: flex; animation: pageIn 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+
+  @keyframes pageIn {
+    from { opacity:0; transform: translateY(20px) scale(0.98); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  /* CARD */
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 420px;
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 0 0 1px rgba(0,240,255,0.05),
+      0 20px 60px rgba(0,0,0,0.6),
+      0 0 80px rgba(0,240,255,0.08),
+      inset 0 1px 0 rgba(0,240,255,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+
+  .card.wide { max-width: 720px; }
+
+  /* LOGO */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 0 20px rgba(0,240,255,0.4);
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #fff, var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 1px;
+    -webkit-text-fill-color: initial;
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--glass-border), transparent);
+  }
+
+  /* INPUTS */
+  .field {
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(0,15,40,0.8);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.25s ease;
+  }
+
+  input::placeholder { color: rgba(224,247,255,0.25); }
+
+  input:focus, select:focus {
+    border-color: var(--cyan);
+    background: rgba(0,240,255,0.05);
+    box-shadow: 0 0 0 3px rgba(0,240,255,0.1), 0 0 20px rgba(0,240,255,0.08);
+  }
+
+  select option { background: #001a4d; }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 13px 20px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .btn:hover::before { opacity: 1; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(0,240,255,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,240,255,0.5);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--cyan);
+    border: 1px solid var(--glass-border-hover);
+  }
+  .btn-outline:hover {
+    background: rgba(0,240,255,0.08);
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px rgba(0,240,255,0.15);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #ff2d55, #c0002a);
+    color: white;
+    font-size: 11px;
+    padding: 7px 14px;
+    width: auto;
+    margin: 0;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 10px rgba(255,45,85,0.3);
+  }
+  .btn-danger:hover { box-shadow: 0 4px 16px rgba(255,45,85,0.5); transform: translateY(-1px); }
+
+  .btn-sm {
+    width: auto;
+    padding: 9px 18px;
+    font-size: 12px;
+    margin-top: 0;
+  }
+
+  /* DIVIDER */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--glass-border);
+  }
+  .divider span {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* LINK */
+  .link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--cyan);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .link:hover { text-shadow: 0 0 12px var(--cyan); }
+
+  .text-center { text-align: center; }
+  .mt-4 { margin-top: 16px; }
+  .mt-6 { margin-top: 24px; }
+
+  /* RESULT BOX */
+  .result-box {
+    background: rgba(0,10,30,0.8);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-top: 14px;
+    position: relative;
+    overflow: hidden;
+    animation: boxIn 0.4s ease both;
+  }
+
+  @keyframes boxIn {
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .result-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--cyan), var(--blue));
+    border-radius: 3px 0 0 3px;
+  }
+
+  .result-box.green-accent::before { background: linear-gradient(180deg, var(--green), #00b377); }
+  .result-box.yellow-accent::before { background: linear-gradient(180deg, var(--yellow), #cc9a00); }
+  .result-box.red-accent::before { background: linear-gradient(180deg, var(--red), #990022); }
+
+  .box-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .box-label.green { color: var(--green); }
+  .box-label.yellow { color: var(--yellow); }
+
+  .result-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 6px;
+  }
+
+  .result-detail {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .result-detail strong { color: var(--text); }
+
+  .map-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    color: var(--cyan);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border: 1px solid rgba(0,240,255,0.3);
+    border-radius: 6px;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .map-link:hover {
+    background: rgba(0,240,255,0.1);
+    border-color: var(--cyan);
+    box-shadow: 0 0 16px rgba(0,240,255,0.2);
+  }
+
+  /* ADMIN GRID */
+  .admin-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .admin-grid { grid-template-columns: 1fr; } }
+
+  .admin-section {
+    background: rgba(0,10,30,0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  /* BADGE */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge-low { background: rgba(0,255,179,0.15); color: var(--green); border: 1px solid rgba(0,255,179,0.3); }
+  .badge-med { background: rgba(255,214,10,0.15); color: var(--yellow); border: 1px solid rgba(255,214,10,0.3); }
+  .badge-high { background: rgba(255,45,85,0.15); color: var(--red); border: 1px solid rgba(255,45,85,0.3); }
+
+  /* ADMIN ITEM */
+  .admin-item {
+    background: rgba(0,5,20,0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    animation: boxIn 0.3s ease both;
+  }
+
+  .admin-item-body { flex: 1; min-width: 0; }
+  .admin-item-body .name { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .admin-item-body .meta { font-size: 13px; color: var(--text-dim); }
+
+  /* NAV */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    font-family: inherit;
+    padding: 0;
+  }
+  .back-btn:hover { color: var(--cyan); }
+
+  /* TOAST */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    z-index: 999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.23,1,0.32,1);
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error   { border-color: var(--red); color: var(--red); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,240,255,0.3); border-radius: 4px; }
+
+  .scroll-area { max-height: 260px; overflow-y: auto; padding-right: 4px; }
+
+  /* empty state */
+  .empty {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  /* PULSE */
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(0,240,255,0.4); }
+    70%  { box-shadow: 0 0 0 14px rgba(0,240,255,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,240,255,0); }
+  }
+  .pulse { animation: pulse-ring 2s infinite; }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-chip {
+    flex: 1;
+    background: rgba(0,10,30,0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat-chip .num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cyan);
+    line-height: 1;
+  }
+  .stat-chip .lbl { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+<div id="toast"></div>
+
+<!-- ======================== LOGIN PAGE ======================== -->
+<div class="page active" id="page-login">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">HEALTH APP</div>
+        <div class="logo-sub">Medical Intelligence</div>
+      </div>
+    </div>
+
+    <div class="section-title">Authentication</div>
+
+    <div class="field">
+      <label>Username</label>
+      <input id="username" placeholder="Enter your username" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="password" type="password" placeholder="Enter your password">
+    </div>
+
+    <button class="btn btn-primary pulse" onclick="login()">⚡ Login</button>
+    <button class="btn btn-outline" onclick="signup()" style="margin-top:10px">Create Account</button>
+
+    <div class="divider"><span>or</span></div>
+
+    <div class="text-center">
+      <span class="link" onclick="showPage('page-admin')">🛡 Admin Portal →</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== FORM PAGE ======================== -->
+<div class="page" id="page-form">
+  <div class="card">
+    <button class="back-btn" onclick="showPage('page-login')">← Back</button>
+
+    <div class="logo">
+      <div class="logo-icon">🩺</div>
+      <div>
+        <div class="logo-text">HEALTH FORM</div>
+        <div class="logo-sub">Patient Details</div>
+      </div>
+    </div>
+
+    <div class="section-title">Personal Info</div>
+
+    <div class="field">
+      <label>Full Name</label>
+      <input id="name" placeholder="Your full name">
+    </div>
+    <div class="field">
+      <label>Age</label>
+      <input id="age" placeholder="Your age" type="number">
+    </div>
+    <div class="field">
+      <label>Phone</label>
+      <input id="phone" placeholder="Contact number" type="tel">
+    </div>
+
+    <div class="section-title" style="margin-top:20px">Medical Info</div>
+
+    <div class="field">
+      <label>Disease / Condition</label>
+      <input id="disease" placeholder="Enter disease name">
+    </div>
+    <div class="field">
+      <label>Severity Level</label>
+      <select id="level">
+        <option value="Low">🟢 Low</option>
+        <option value="Medium">🟡 Medium</option>
+        <option value="High">🔴 High</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitForm()" style="margin-top:12px">Submit & Get Results →</button>
+  </div>
+</div>
+
+<!-- ======================== RESULT PAGE ======================== -->
+<div class="page" id="page-result">
+  <div class="card" style="max-width:500px">
+    <button class="back-btn" onclick="showPage('page-form')">← New Search</button>
+
+    <div class="logo">
+      <div class="logo-icon">📋</div>
+      <div>
+        <div class="logo-text">RESULTS</div>
+        <div class="logo-sub">Analysis Complete</div>
+      </div>
+    </div>
+
+    <div id="suggestionBox"></div>
+    <div id="doctorBox" style="margin-top:6px"></div>
+
+    <div class="mt-6 text-center">
+      <span class="link" onclick="showPage('page-login')">← Return to Home</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== ADMIN PAGE ======================== -->
+<div class="page" id="page-admin">
+  <div class="card wide">
+    <button class="back-btn" onclick="showPage('page-login')">← Back to Login</button>
+
+    <div class="logo">
+      <div class="logo-icon">🛡</div>
+      <div>
+        <div class="logo-text">ADMIN PANEL</div>
+        <div class="logo-sub">Control Center</div>
+      </div>
+    </div>
+
+    <!-- Admin Login -->
+    <div id="adminLoginSection">
+      <div class="section-title">Admin Authentication</div>
+      <div class="field">
+        <label>Admin Username</label>
+        <input id="adminUser" placeholder="admin">
+      </div>
+      <div class="field">
+        <label>Admin Password</label>
+        <input id="adminPass" type="password" placeholder="••••">
+      </div>
+      <button class="btn btn-primary" onclick="adminLogin()">🛡 Access Admin Panel</button>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" style="display:none">
+      <div class="stats-bar">
+        <div class="stat-chip">
+          <div class="num" id="statDoctors">0</div>
+          <div class="lbl">Doctors</div>
+        </div>
+        <div class="stat-chip">
+          <div class="num" id="statSuggestions">0</div>
+          <div class="lbl">Suggestions</div>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <!-- Add Doctor -->
+        <div class="admin-section">
+          <div class="section-title">Add Doctor</div>
+          <div class="field">
+            <label>Doctor Name</label>
+            <input id="drName" placeholder="Dr. Full Name">
+          </div>
+          <div class="field">
+            <label>Specialization / Disease</label>
+            <input id="drDisease" placeholder="Disease type">
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input id="drPhone" placeholder="Contact number">
+          </div>
+          <div class="field">
+            <label>Address</label>
+            <input id="drAddress" placeholder="Clinic address">
+          </div>
+          <div class="field">
+            <label>Google Maps Link</label>
+            <input id="drMap" placeholder="https://maps.google.com/...">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addDoctor()">+ Add Doctor</button>
+        </div>
+
+        <!-- Add Suggestion -->
+        <div class="admin-section">
+          <div class="section-title">Add Suggestion</div>
+          <div class="field">
+            <label>Disease Name</label>
+            <input id="sDisease" placeholder="Disease type">
+          </div>
+          <div class="field">
+            <label>Severity Level</label>
+            <select id="sLevel">
+              <option value="Low">🟢 Low</option>
+              <option value="Medium">🟡 Medium</option>
+              <option value="High">🔴 High</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Suggestion Text</label>
+            <input id="sText" placeholder="Health advice / suggestion">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addSuggestion()">+ Add Suggestion</button>
+        </div>
+      </div>
+
+      <!-- Doctors List -->
+      <div class="section-title">Registered Doctors</div>
+      <div class="scroll-area" id="doctorList"><div class="empty">No doctors added yet.</div></div>
+
+      <!-- Suggestions List -->
+      <div class="section-title" style="margin-top:24px">Health Suggestions</div>
+      <div class="scroll-area" id="suggestionList"><div class="empty">No suggestions added yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======================= UTILS =======================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+let toastTimer;
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3000);
+}
+
+// ======================= AUTH =======================
+function signup() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value.trim();
+  if (!u || !p) return toast('Please enter username and password', 'error');
+  localStorage.setItem('user', u);
+  localStorage.setItem('pass', p);
+  toast('Account created! You can now login.', 'success');
+}
+
+function login() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value.trim();
+  if (!u || !p) return toast('Please enter credentials', 'error');
+  if (u === localStorage.getItem('user') && p === localStorage.getItem('pass')) {
+    toast('Welcome back! 👋', 'success');
+    setTimeout(() => showPage('page-form'), 600);
+  } else {
+    toast('Invalid username or password', 'error');
+  }
+}
+
+// ======================= FORM =======================
+function submitForm() {
+  const name = document.getElementById('name').value.trim();
+  const age = document.getElementById('age').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const disease = document.getElementById('disease').value.trim();
+  const level = document.getElementById('level').value;
+  if (!name || !age || !phone || !disease) return toast('Please fill all fields', 'error');
+
+  localStorage.setItem('pName', name);
+  localStorage.setItem('pAge', age);
+  localStorage.setItem('pPhone', phone);
+  localStorage.setItem('disease', disease);
+  localStorage.setItem('level', level);
+
+  loadResult();
+  showPage('page-result');
+}
+
+// ======================= RESULT =======================
+function loadResult() {
+  const disease = localStorage.getItem('disease') || '';
+  const level = localStorage.getItem('level') || '';
+  const doctors = JSON.parse(localStorage.getItem('doctors')) || [];
+  const suggestions = JSON.parse(localStorage.getItem('suggestions')) || [];
+
+  // Suggestion
+  const sug = suggestions.find(s =>
+    s.disease.toLowerCase() === disease.toLowerCase() && s.level === level
+  );
+
+  const levelClass = level === 'Low' ? 'green-accent' : level === 'Medium' ? 'yellow-accent' : 'red-accent';
+  const levelBadge = level === 'Low' ? 'badge-low' : level === 'Medium' ? 'badge-med' : 'badge-high';
+  const levelIcon = level === 'Low' ? '🟢' : level === 'Medium' ? '🟡' : '🔴';
+  const boxLabelClass = level === 'Low' ? 'green' : level === 'Medium' ? 'yellow' : '';
+
+  document.getElementById('suggestionBox').innerHTML = `
+    <div class="result-box ${levelClass}">
+      <div class="box-label ${boxLabelClass}">💡 Health Suggestion — <span class="badge ${levelBadge}">${levelIcon} ${level}</span></div>
+      <div style="font-size:15px;line-height:1.6;color:var(--text)">${sug ? sug.text : 'No suggestion available for this condition and level.'}</div>
+    </div>`;
+
+  // Doctors
+  const list = doctors.filter(d => d.disease.toLowerCase() === disease.toLowerCase());
+  if (list.length === 0) {
+    document.getElementById('doctorBox').innerHTML = `
+      <div class="result-box">
+        <div class="box-label">🏥 Doctors</div>
+        <div class="empty" style="padding:6px 0">No doctors found for <strong>${disease}</strong>.</div>
+      </div>`;
+  } else {
+    const html = list.map(d => `
+      <div class="result-box">
+        <div class="box-label">🩺 Recommended Doctor</div>
+        <div class="result-name">${d.name}</div>
+        <div class="result-detail">📞 <strong>${d.phone}</strong></div>
+        <div class="result-detail">📍 ${d.address}</div>
+        ${d.map ? `<a class="map-link" href="${d.map}" target="_blank">📍 Open in Google Maps</a>` : ''}
+      </div>`).join('');
+    document.getElementById('doctorBox').innerHTML = html;
+  }
+}
+
+// ======================= ADMIN =======================
+function adminLogin() {
+  const u = document.getElementById('adminUser').value;
+  const p = document.getElementById('adminPass').value;
+  if (u === 'admin' && p === '1234') {
+    document.getElementById('adminLoginSection').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadData();
+    toast('Admin access granted 🛡', 'success');
+  } else {
+    toast('Invalid admin credentials', 'error');
+  }
+}
+
+function addDoctor() {
+  const name = document.getElementById('drName').value.trim();
+  const disease = document.getElementById('drDisease').value.trim();
+  const phone = document.getElementById('drPhone').value.trim();
+  const address = document.getElementById('drAddress').value.trim();
+  const map = document.getElementById('drMap').value.trim();
+  if (!name || !disease || !phone) return toast('Fill required doctor fields', 'error');
+
+  const doctors = JSON.parse(localStorage.getItem('doctors')) || [];
+  doctors.push({ name, disease, phone, address, map });
+  localStorage.setItem('doctors', JSON.stringify(doctors));
+  ['drName','drDisease','drPhone','drAddress','drMap'].forEach(id => document.getElementById(id).value = '');
+  loadData();
+  toast('Doctor added ✅', 'success');
+}
+
+function deleteDoctor(i) {
+  const doctors = JSON.parse(localStorage.getItem('doctors')) || [];
+  doctors.splice(i, 1);
+  localStorage.setItem('doctors', JSON.stringify(doctors));
+  loadData();
+  toast('Doctor removed', 'error');
+}
+
+function addSuggestion() {
+  const disease = document.getElementById('sDisease').value.trim();
+  const level = document.getElementById('sLevel').value;
+  const text = document.getElementById('sText').value.trim();
+  if (!disease || !text) return toast('Fill all suggestion fields', 'error');
+
+  const suggestions = JSON.parse(localStorage.getItem('suggestions')) || [];
+  suggestions.push({ disease, level, text });
+  localStorage.setItem('suggestions', JSON.stringify(suggestions));
+  ['sDisease','sText'].forEach(id => document.getElementById(id).value = '');
+  loadData();
+  toast('Suggestion added ✅', 'success');
+}
+
+function deleteSuggestion(i) {
+  const suggestions = JSON.parse(localStorage.getItem('suggestions')) || [];
+  suggestions.splice(i, 1);
+  localStorage.setItem('suggestions', JSON.stringify(suggestions));
+  loadData();
+  toast('Suggestion removed', 'error');
+}
+
+function loadData() {
+  const doctors = JSON.parse(localStorage.getItem('doctors')) || [];
+  const suggestions = JSON.parse(localStorage.getItem('suggestions')) || [];
+
+  document.getElementById('statDoctors').textContent = doctors.length;
+  document.getElementById('statSuggestions').textContent = suggestions.length;
+
+  document.getElementById('doctorList').innerHTML = doctors.length === 0
+    ? '<div class="empty">No doctors added yet.</div>'
+    : doctors.map((d, i) => `
+      <div class="admin-item">
+        <div class="admin-item-body">
+          <div class="name">🩺 ${d.name}</div>
+          <div class="meta">${d.disease} · ${d.phone}</div>
+          <div class="meta">📍 ${d.address}</div>
+          ${d.map ? `<a class="map-link" href="${d.map}" target="_blank" style="font-size:12px;padding:4px 10px;margin-top:6px">Map →</a>` : ''}
+        </div>
+        <button class="btn btn-danger" onclick="deleteDoctor(${i})">✕ Remove</button>
+      </div>`).join('');
+
+  document.getElementById('suggestionList').innerHTML = suggestions.length === 0
+    ? '<div class="empty">No suggestions added yet.</div>'
+    : suggestions.map((s, i) => {
+        const b = s.level === 'Low' ? 'badge-low' : s.level === 'Medium' ? 'badge-med' : 'badge-high';
+        return `
+        <div class="admin-item">
+          <div class="admin-item-body">
+            <div class="name">${s.disease} <span class="badge ${b}">${s.level}</span></div>
+            <div class="meta" style="margin-top:5px">${s.text}</div>
+          </div>
+          <button class="btn btn-danger" onclick="deleteSuggestion(${i})">✕ Remove</button>
+        </div>`;
+      }).join('');
+}
+
+// Enter key support
+document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+document.getElementById('username').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+</script>
+</body>
+</html>

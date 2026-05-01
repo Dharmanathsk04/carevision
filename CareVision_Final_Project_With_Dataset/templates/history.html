@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Prediction History - CareVision</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+body { background: #020617; color: white; min-height: 100vh; }
+
+.history-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    background: linear-gradient(90deg, #22c55e, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #22c55e, #3b82f6);
+}
+
+.filter-btn:hover {
+    transform: translateY(-2px);
+}
+
+.search-box {
+    flex: 1;
+    max-width: 300px;
+    padding: 10px 15px;
+    background: rgba(2, 6, 23, 0.8);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 8px;
+    color: white;
+}
+
+.prediction-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.prediction-table th {
+    background: rgba(34, 197, 94, 0.1);
+    padding: 20px;
+    text-align: left;
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.prediction-table td {
+    padding: 20px;
+    border-bottom: 1px solid rgba(34, 197, 94, 0.1);
+}
+
+.prediction-table tr:hover {
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.risk-badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.risk-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.risk-low { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+
+.disease-icon {
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.back-btn {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 12px 25px;
+    background: linear-gradient(135deg, #22c55e, #3b82f6);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+}
+
+.no-data {
+    text-align: center;
+    padding: 50px;
+    color: #94a3b8;
+    font-size: 18px;
+}
+</style>
+</head>
+<body>
+
+<div class="history-container">
+    <div class="header">
+        <h1>📋 Prediction History</h1>
+        <p style="color: #94a3b8;">View all your previous health predictions</p>
+    </div>
+
+    <div class="controls">
+        <div style="display: flex; gap: 10px;">
+            <button class="filter-btn active" onclick="filterPredictions('all')">All</button>
+            <button class="filter-btn" onclick="filterPredictions('heart')">❤️ Heart</button>
+            <button class="filter-btn" onclick="filterPredictions('diabetes')">🩸 Diabetes</button>
+            <button class="filter-btn" onclick="filterPredictions('high')">🔴 High Risk</button>
+            <button class="filter-btn" onclick="filterPredictions('low')">🟢 Low Risk</button>
+        </div>
+        <input type="text" class="search-box" placeholder="Search predictions..." onkeyup="searchPredictions(this.value)">
+    </div>
+
+    {% if predictions %}
+    <table class="prediction-table" id="predictionTable">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Disease</th>
+                <th>Risk Level</th>
+                <th>Probability</th>
+                <th>Health Score</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pred in predictions %}
+            <tr class="prediction-row" data-disease="{{ pred.disease }}" data-risk="{{ 'high' if pred.risk_high else 'low' }}">
+                <td>{{ pred.date }}</td>
+                <td>
+                    {% if pred.disease == 'heart' %}
+                    <span class="disease-icon">❤️</span> Heart Disease
+                    {% else %}
+                    <span class="disease-icon">🩸</span> Diabetes
+                    {% endif %}
+                </td>
+                <td>
+                    {% if pred.risk_high %}
+                    <span class="risk-badge risk-high">HIGH RISK</span>
+                    {% else %}
+                    <span class="risk-badge risk-low">LOW RISK</span>
+                    {% endif %}
+                </td>
+                <td>{{ pred.probability }}%</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        {{ pred.health_score }}/100
+                        <div style="flex: 1; height: 8px; background: rgba(34, 197, 94, 0.2); border-radius: 4px;">
+                            <div style="width: {{ pred.health_score }}%; height: 100%; background: linear-gradient(90deg, #22c55e, #3b82f6); border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <button class="filter-btn" onclick="viewDetails('{{ pred.date }}', '{{ pred.disease }}')" style="padding: 5px 15px; font-size: 12px;">
+                        👁️ View
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">
+        <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+        <h3>No prediction history yet</h3>
+        <p style="margin: 20px 0;">Start making predictions to see your history here!</p>
+        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
+            <a href="/heart" class="back-btn">❤️ Predict Heart Disease</a>
+            <a href="/diabetes" class="back-btn">🩸 Predict Diabetes</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px;">
+        <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
+        <a href="/export" class="back-btn">📥 Export History</a>
+    </div>
+</div>
+
+<script>
+// Filter predictions
+function filterPredictions(filter) {
+    const rows = document.querySelectorAll('.prediction-row');
+    const buttons = document.querySelectorAll('.filter-btn');
+    
+    // Update active button
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    rows.forEach(row => {
+        const disease = row.dataset.disease;
+        const risk = row.dataset.risk;
+        
+        if (filter === 'all' ||
+            (filter === 'heart' && disease === 'heart') ||
+            (filter === 'diabetes' && disease === 'diabetes') ||
+            (filter === 'high' && risk === 'high') ||
+            (filter === 'low' && risk === 'low')) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Search predictions
+function searchPredictions(query) {
+    const rows = document.querySelectorAll('.prediction-row');
+    query = query.toLowerCase();
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+    });
+}
+
+// View prediction details
+function viewDetails(date, disease) {
+    alert(`Prediction Details:\n\nDate: ${date}\nDisease: ${disease}\n\nFeature coming soon: Detailed view with all input parameters.`);
+}
+
+// Sort by column (optional enhancement)
+function sortTable(columnIndex) {
+    const table = document.getElementById('predictionTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].textContent;
+        const bText = b.cells[columnIndex].textContent;
+        return aText.localeCompare(bText);
+    });
+    
+    // Clear and re-add sorted rows
+    rows.forEach(row => tbody.appendChild(row));
+}
+</script>
+
+</body>
+</html>

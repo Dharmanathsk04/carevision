@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareVision — Heart Disease Prediction Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg:           #04090f;
+            --bg2:          #070f1c;
+            --card:         #0b1628;
+            --card2:        #0e1e35;
+            --card3:        #111f38;
+            --blue:         #3b82f6;
+            --blue-bright:  #60a5fa;
+            --blue-dim:     rgba(59,130,246,0.15);
+            --blue-border:  rgba(59,130,246,0.22);
+            --green:        #10b981;
+            --green-bright: #34d399;
+            --green-dim:    rgba(16,185,129,0.13);
+            --green-border: rgba(16,185,129,0.28);
+            --red:          #ef4444;
+            --red-bright:   #f87171;
+            --red-dim:      rgba(239,68,68,0.13);
+            --red-border:   rgba(239,68,68,0.28);
+            --amber:        #f59e0b;
+            --amber-dim:    rgba(245,158,11,0.13);
+            --violet:       #8b5cf6;
+            --violet-dim:   rgba(139,92,246,0.13);
+            --white:        #eaf4ff;
+            --muted:        rgba(160,200,255,0.48);
+            --muted2:       rgba(160,200,255,0.72);
+            --border:       rgba(255,255,255,0.055);
+            --radius:       18px;
+            --radius-sm:    11px;
+            --shadow:       0 20px 60px rgba(0,0,0,0.5);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--white);
+            min-height: 100vh;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+        .bg-layers { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        .bg-layers::before {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 80% 55% at 5% 0%,  rgba(59,130,246,0.09) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 70% at 95% 5%, rgba(139,92,246,0.06) 0%, transparent 55%),
+                radial-gradient(ellipse 55% 60% at 50% 100%, rgba(16,185,129,0.05) 0%, transparent 55%);
+        }
+        .bg-layers::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(59,130,246,0.028) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.028) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .page {
+            position: relative; z-index: 1;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 20px 64px;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 22px 0 24px;
+            border-bottom: 1px solid rgba(59,130,246,0.12);
+            margin-bottom: 32px;
+            animation: fadeDown 0.5s ease both;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-mark {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 24px rgba(99,102,241,0.35);
+        }
+        .brand-copy strong { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.3px; }
+        .brand-copy strong span { color: var(--blue-bright); }
+        .brand-copy small { font-size: 11px; color: var(--muted); display: block; letter-spacing: 0.4px; text-transform: uppercase; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .report-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; }
+        .time-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted2); }
+        .print-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 14px; background: transparent;
+            border: 1px solid var(--border); color: var(--muted);
+            cursor: pointer; border-radius: 9px;
+            font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .print-btn:hover { border-color: var(--blue-border); color: var(--blue-bright); }
+
+        /* VERDICT BANNER */
+        .verdict-banner {
+            border-radius: var(--radius);
+            padding: 28px 30px;
+            display: flex; align-items: center; gap: 22px;
+            position: relative; overflow: hidden;
+            margin-bottom: 20px;
+            animation: fadeUp 0.6s ease both;
+            flex-wrap: wrap;
+        }
+        .verdict-banner.danger { background: linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(239,68,68,0.04) 100%); border: 1.5px solid var(--red-border); box-shadow: 0 0 60px rgba(239,68,68,0.07), var(--shadow); }
+        .verdict-banner.safe   { background: linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(16,185,129,0.04) 100%); border: 1.5px solid var(--green-border); box-shadow: 0 0 60px rgba(16,185,129,0.07), var(--shadow); }
+        .verdict-banner::after {
+            content: ''; position: absolute; top: -40px; right: -40px;
+            width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle, var(--glow-color, rgba(59,130,246,0.12)) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .verdict-banner.danger { --glow-color: rgba(239,68,68,0.14); }
+        .verdict-banner.safe   { --glow-color: rgba(16,185,129,0.12); }
+        .verdict-icon { width: 68px; height: 68px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+        .verdict-banner.danger .verdict-icon { background: var(--red-dim); border: 1.5px solid var(--red-border); }
+        .verdict-banner.safe   .verdict-icon { background: var(--green-dim); border: 1.5px solid var(--green-border); }
+        .verdict-copy { flex: 1; min-width: 200px; }
+        .verdict-tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+        .verdict-headline { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -0.6px; line-height: 1.08; margin-bottom: 8px; }
+        .verdict-banner.danger .verdict-headline { color: var(--red-bright); }
+        .verdict-banner.safe   .verdict-headline { color: var(--green-bright); }
+        .verdict-sub { font-size: 13px; color: var(--muted2); line-height: 1.6; }
+        .verdict-meta { text-align: center; flex-shrink: 0; }
+        .big-prob { font-family: 'JetBrains Mono', monospace; font-size: 40px; font-weight: 600; line-height: 1; letter-spacing: -1px; }
+        .verdict-banner.danger .big-prob { color: var(--red-bright); }
+        .verdict-banner.safe   .big-prob { color: var(--green-bright); }
+        .big-prob-label { font-size: 11px; color: var(--muted); margin-top: 3px; letter-spacing: 0.4px; }
+
+        /* GRID HELPERS */
+        .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+        /* CARDS */
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 22px 24px;
+            animation: fadeUp 0.6s ease both;
+            transition: border-color 0.25s;
+        }
+        .card:hover { border-color: var(--blue-border); }
+        .card.full { grid-column: 1 / -1; }
+        .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+        .card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+        .card-icon.blue   { background: var(--blue-dim);   border: 1px solid var(--blue-border); }
+        .card-icon.green  { background: var(--green-dim);  border: 1px solid var(--green-border); }
+        .card-icon.red    { background: var(--red-dim);    border: 1px solid var(--red-border); }
+        .card-icon.amber  { background: var(--amber-dim);  border: 1px solid rgba(245,158,11,0.3); }
+        .card-icon.violet { background: var(--violet-dim); border: 1px solid rgba(139,92,246,0.3); }
+        .card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+        .card-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+        /* METRIC BOXES */
+        .metric-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; animation: fadeUp 0.6s ease both; transition: border-color 0.25s; }
+        .metric-box:hover { border-color: var(--blue-border); }
+        .metric-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 7px; }
+        .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 600; line-height: 1; }
+        .metric-value .unit { font-size: 13px; color: var(--muted); font-family: 'DM Sans', sans-serif; margin-left: 2px; }
+        .metric-value.blue   { color: var(--blue-bright); }
+        .metric-value.green  { color: var(--green-bright); }
+        .metric-value.red    { color: var(--red-bright); }
+        .metric-value.amber  { color: var(--amber); }
+        .metric-bar { height: 5px; border-radius: 100px; background: rgba(255,255,255,0.06); overflow: hidden; margin-top: 10px; }
+        .metric-bar-fill { height: 100%; border-radius: 100px; width: 0; transition: width 1.3s cubic-bezier(.4,0,.2,1); }
+
+        /* GAUGE */
+        .gauge-wrap { position: relative; width: 160px; height: 88px; margin: 0 auto 8px; }
+        .gauge-svg { width: 100%; height: 100%; }
+        .gauge-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 10; stroke-linecap: round; }
+        .gauge-arc { fill: none; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 252; stroke-dashoffset: 252; transition: stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1); }
+        .gauge-arc.danger { stroke: url(#gDanger); }
+        .gauge-arc.safe   { stroke: url(#gSafe); }
+        .gauge-center { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); text-align: center; }
+        .gauge-num { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; line-height: 1; }
+        .gauge-num.danger { color: var(--red-bright); }
+        .gauge-num.safe   { color: var(--green-bright); }
+        .gauge-caption { font-size: 10px; color: var(--muted); letter-spacing: 0.4px; margin-top: 2px; }
+        .gauge-ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+        /* RING */
+        .ring-container { display: flex; align-items: center; gap: 20px; }
+        .ring-svg-wrap { position: relative; flex-shrink: 0; }
+        svg.ring-svg { transform: rotate(-90deg); display: block; }
+        .ring-bg   { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8; }
+        .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1); }
+        .ring-fill.safe   { stroke: var(--green); }
+        .ring-fill.danger { stroke: var(--red); }
+        .ring-fill.amber  { stroke: var(--amber); }
+        .ring-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ring-num2 { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 600; line-height: 1; }
+        .ring-num2.safe   { color: var(--green-bright); }
+        .ring-num2.danger { color: var(--red-bright); }
+        .ring-num2.amber  { color: var(--amber); }
+        .ring-denom { font-size: 10px; color: var(--muted); }
+        .ring-info h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+        .ring-info p { font-size: 13px; color: var(--muted2); line-height: 1.6; }
+        .ring-grade { display: inline-block; margin-top: 10px; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+        .ring-grade.safe   { background: var(--green-dim); color: var(--green-bright); border: 1px solid var(--green-border); }
+        .ring-grade.danger { background: var(--red-dim);   color: var(--red-bright);   border: 1px solid var(--red-border); }
+        .ring-grade.amber  { background: var(--amber-dim); color: var(--amber);         border: 1px solid rgba(245,158,11,0.3); }
+
+        /* RISK BANDS */
+        .risk-bands { display: flex; gap: 4px; margin-bottom: 6px; }
+        .risk-seg { flex: 1; height: 10px; border-radius: 100px; background: rgba(255,255,255,0.07); transition: background 0.4s; }
+        .risk-seg.lit-low    { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .risk-seg.lit-medium { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+        .risk-seg.lit-high   { background: var(--red);   box-shadow: 0 0 8px var(--red); }
+        .risk-band-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+        .risk-current-label { text-align: center; margin-top: 10px; font-size: 13px; font-weight: 600; }
+
+        /* CHART */
+        .chart-wrap { position: relative; }
+        canvas { max-width: 100%; }
+
+        /* RECS */
+        .rec-list { display: flex; flex-direction: column; gap: 10px; }
+        .rec-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; background: var(--card2); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: border-color 0.2s; }
+        .rec-item:hover { border-color: var(--blue-border); }
+        .rec-num { width: 28px; height: 28px; border-radius: 8px; background: var(--blue-dim); border: 1px solid var(--blue-border); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--blue-bright); flex-shrink: 0; }
+        .rec-body h5 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+        .rec-body p { font-size: 12.5px; color: var(--muted2); line-height: 1.55; }
+
+        /* TIPS */
+        .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .tip-pill { display: flex; align-items: center; gap: 10px; padding: 11px 13px; background: var(--card2); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12.5px; color: var(--muted2); transition: border-color 0.2s; }
+        .tip-pill:hover { border-color: var(--green-border); color: var(--white); }
+        .tip-pill .ti { font-size: 18px; flex-shrink: 0; }
+
+        /* CALLOUT */
+        .callout { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 8px; }
+        .callout:last-child { margin-bottom: 0; }
+        .callout.warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); }
+        .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+        .callout-body p { font-size: 12.5px; color: var(--muted2); line-height: 1.55; }
+
+        /* STEPS */
+        .steps-list { display: flex; flex-direction: column; gap: 0; }
+        .step-item { display: flex; align-items: flex-start; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .step-item:last-child { border-bottom: 0; }
+        .step-num { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--violet)); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; box-shadow: 0 0 14px rgba(99,102,241,0.25); }
+        .step-text h5 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .step-text p { font-size: 12.5px; color: var(--muted2); line-height: 1.55; }
+
+        /* ACTIONS */
+        .actions-bar { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; animation: fadeUp 0.6s 0.2s ease both; }
+        .btn-primary { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 15px 24px; width: 100%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; text-decoration: none; border: 0; border-radius: 13px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 28px rgba(99,102,241,0.3); transition: transform 0.18s, box-shadow 0.18s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(99,102,241,0.42); }
+        .btn-row { display: flex; gap: 10px; }
+        .btn-ghost { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--muted2); text-decoration: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; transition: border-color 0.2s, background 0.2s, color 0.2s; }
+        .btn-ghost:hover { border-color: var(--blue-border); background: var(--blue-dim); color: var(--white); }
+
+        /* FOOTER */
+        .report-footer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); animation: fadeUp 0.5s 0.3s ease both; flex-wrap: wrap; gap: 12px; }
+        .disclaimer-text { max-width: 560px; line-height: 1.6; }
+        .disclaimer-text strong { color: rgba(160,200,255,0.8); }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp   { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+        @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+        .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.10s; }
+        .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.20s; }
+        .d5 { animation-delay: 0.25s; } .d6 { animation-delay: 0.30s; }
+
+        /* RESPONSIVE */
+        @media (max-width: 680px) {
+            .two-col   { grid-template-columns: 1fr; }
+            .three-col { grid-template-columns: 1fr 1fr; }
+            .tips-grid { grid-template-columns: 1fr; }
+            .verdict-banner { flex-direction: column; gap: 14px; }
+            .verdict-meta { text-align: left; }
+            .time-badge { display: none; }
+            .report-footer { flex-direction: column; text-align: center; }
+        }
+        @media (max-width: 420px) { .three-col { grid-template-columns: 1fr; } }
+        @media print { body { background: white; color: black; } .bg-layers, .actions-bar, .print-btn { display: none; } .card, .metric-box { border: 1px solid #ddd !important; background: #fafafa !important; } }
+    </style>
+</head>
+<body>
+<div class="bg-layers"></div>
+
+<!-- SVG Defs for gauge gradients (hidden) -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden;">
+    <defs>
+        <linearGradient id="gDanger" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#ef4444"/>
+        </linearGradient>
+        <linearGradient id="gSafe" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#10b981"/>
+        </linearGradient>
+    </defs>
+</svg>
+
+<div class="page">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-mark">🫀</div>
+            <div class="brand-copy">
+                <strong>Care<span>Vision</span></strong>
+                <small>AI-Powered Cardiac Screening</small>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="report-id" id="reportId">RPT-······</div>
+            <div class="time-badge" id="nowTime">—</div>
+            <button class="print-btn" onclick="window.print()">🖨 Print Report</button>
+        </div>
+    </div>
+
+    <!-- VERDICT BANNER -->
+    <div class="verdict-banner {{ 'danger' if pred == 1 else 'safe' }}">
+        <div class="verdict-icon">{{ '⚠️' if pred == 1 else '✅' }}</div>
+        <div class="verdict-copy">
+            <div class="verdict-tag">Heart Disease Risk Assessment · AI Prediction</div>
+            <div class="verdict-headline">
+                {{ 'Heart Disease Risk Detected' if pred == 1 else 'No Significant Heart Disease Risk' }}
+            </div>
+            <div class="verdict-sub">
+                {{ 'Our model has identified elevated cardiovascular risk indicators. Prompt medical consultation is strongly advised.' if pred == 1 else 'Your clinical parameters show no significant risk indicators at this time. Continue maintaining a healthy lifestyle.' }}
+            </div>
+        </div>
+        <div class="verdict-meta">
+            <div class="big-prob" id="bigProb">0<span style="font-size:22px">%</span></div>
+            <div class="big-prob-label">Risk Probability</div>
+        </div>
+    </div>
+
+    <!-- 3 METRIC BOXES -->
+    <div class="three-col">
+        <div class="metric-box d1">
+            <div class="metric-label">📊 Risk Probability</div>
+            <div class="metric-value {{ 'red' if pred == 1 else 'green' }}" id="metricProb">0<span class="unit">%</span></div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="barProb" style="background:{{ 'linear-gradient(90deg,#fbbf24,#ef4444)' if pred == 1 else 'linear-gradient(90deg,#34d399,#10b981)' }}"></div></div>
+        </div>
+        <div class="metric-box d2">
+            <div class="metric-label">🩺 Health Score</div>
+            <div class="metric-value {{ 'green' if health >= 60 else ('amber' if health >= 40 else 'red') }}" id="metricHealth">0<span class="unit">/100</span></div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="barHealth" style="background:{{ 'linear-gradient(90deg,#34d399,#10b981)' if health >= 60 else ('linear-gradient(90deg,#fcd34d,#f59e0b)' if health >= 40 else 'linear-gradient(90deg,#fca5a5,#ef4444)') }}"></div></div>
+        </div>
+        <div class="metric-box d3">
+            <div class="metric-label">🎯 Risk Category</div>
+            <div class="metric-value {{ 'red' if pred == 1 else 'green' }}" style="font-size:17px;font-family:'Syne',sans-serif;margin-top:6px;">{{ 'HIGH RISK' if pred == 1 else 'LOW RISK' }}</div>
+            <div style="margin-top:10px;font-size:12px;color:var(--muted);" id="riskTier">Analyzing…</div>
+        </div>
+    </div>
+
+    <!-- ROW: GAUGE + RING -->
+    <div class="two-col">
+        <!-- Probability Gauge -->
+        <div class="card d1">
+            <div class="card-head">
+                <div class="card-icon {{ 'red' if pred == 1 else 'green' }}">📈</div>
+                <div><div class="card-title">Probability Gauge</div><div class="card-sub">Risk likelihood meter</div></div>
+            </div>
+            <div class="gauge-wrap">
+                <svg class="gauge-svg" viewBox="0 0 160 88">
+                    <path class="gauge-track" d="M 20 80 A 60 60 0 0 1 140 80"/>
+                    <path class="gauge-arc {{ 'danger' if pred == 1 else 'safe' }}" id="gaugeArc" d="M 20 80 A 60 60 0 0 1 140 80"/>
+                </svg>
+                <div class="gauge-center">
+                    <div class="gauge-num {{ 'danger' if pred == 1 else 'safe' }}" id="gaugeNum">0%</div>
+                    <div class="gauge-caption">PROBABILITY</div>
+                </div>
+            </div>
+            <div class="gauge-ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+            <div style="margin-top:18px;">
+                <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:8px;">Risk Classification Band</div>
+                <div class="risk-bands">
+                    <div class="risk-seg" id="rs1"></div><div class="risk-seg" id="rs2"></div>
+                    <div class="risk-seg" id="rs3"></div><div class="risk-seg" id="rs4"></div>
+                    <div class="risk-seg" id="rs5"></div>
+                </div>
+                <div class="risk-band-labels"><span>Minimal</span><span>Low</span><span>Moderate</span><span>High</span><span>Critical</span></div>
+                <div class="risk-current-label" id="riskLabel" style="color:var(--muted2);">—</div>
+            </div>
+        </div>
+
+        <!-- Health Score Ring -->
+        <div class="card d2">
+            <div class="card-head">
+                <div class="card-icon {{ 'green' if health >= 60 else ('amber' if health >= 40 else 'red') }}">🩺</div>
+                <div><div class="card-title">Health Score</div><div class="card-sub">Overall cardiovascular index</div></div>
+            </div>
+            <div class="ring-container">
+                <div class="ring-svg-wrap">
+                    <svg class="ring-svg" width="100" height="100" viewBox="0 0 100 100">
+                        <circle class="ring-bg" cx="50" cy="50" r="45"/>
+                        <circle class="ring-fill {{ 'green' if health >= 60 else ('amber' if health >= 40 else 'danger') }}" id="ringFill" cx="50" cy="50" r="45"/>
+                    </svg>
+                    <div class="ring-inner">
+                        <div class="ring-num2 {{ 'safe' if health >= 60 else ('amber' if health >= 40 else 'danger') }}" id="ringNum">0</div>
+                        <div class="ring-denom">/100</div>
+                    </div>
+                </div>
+                <div class="ring-info">
+                    <h4>Cardiovascular Health Index</h4>
+                    <p id="healthDesc" style="font-size:13px;color:var(--muted2);line-height:1.6;">Analyzing…</p>
+                    <div class="ring-grade {{ 'safe' if health >= 60 else ('amber' if health >= 40 else 'danger') }}" id="ringGrade">—</div>
+                </div>
+            </div>
+            <div style="margin-top:20px;">
+                <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:10px;">Score Components</div>
+                <div id="scoreBreakdown"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW: DOUGHNUT + RADAR -->
+    <div class="two-col">
+        <div class="card d3">
+            <div class="card-head">
+                <div class="card-icon blue">🍩</div>
+                <div><div class="card-title">Risk vs Health Breakdown</div><div class="card-sub">Visual probability split</div></div>
+            </div>
+            <div class="chart-wrap" style="height:190px;"><canvas id="doughnutChart"></canvas></div>
+            <div style="display:flex;gap:14px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+                <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted2);"><span style="width:10px;height:10px;border-radius:50%;background:{{ '#ef4444' if pred==1 else '#10b981' }};display:inline-block;"></span>Risk Factor</span>
+                <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted2);"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block;"></span>Health Reserve</span>
+                <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted2);"><span style="width:10px;height:10px;border-radius:50%;background:#8b5cf6;display:inline-block;"></span>Uncertainty</span>
+            </div>
+        </div>
+        <div class="card d4">
+            <div class="card-head">
+                <div class="card-icon violet">🕸</div>
+                <div><div class="card-title">Risk Factor Radar</div><div class="card-sub">Key indicator profile</div></div>
+            </div>
+            <div class="chart-wrap" style="height:190px;"><canvas id="radarChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- ROW: LINE CHART FULL -->
+    <div class="card full d4" style="margin-bottom:16px;">
+        <div class="card-head">
+            <div class="card-icon blue">📉</div>
+            <div><div class="card-title">Risk Score vs Population Reference Curve</div><div class="card-sub">Your result compared to typical population risk percentiles by age group</div></div>
+        </div>
+        <div class="chart-wrap" style="height:185px;"><canvas id="lineChart"></canvas></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center;">★ Dashed line = your risk score. Filled curve = average population risk progression by age group.</div>
+    </div>
+
+    <!-- ROW: BAR CHART FULL -->
+    <div class="card full d5" style="margin-bottom:16px;">
+        <div class="card-head">
+            <div class="card-icon amber">📊</div>
+            <div><div class="card-title">Clinical Indicator Analysis</div><div class="card-sub">Relative contribution of each factor to your overall risk score</div></div>
+        </div>
+        <div class="chart-wrap" style="height:180px;"><canvas id="barChart"></canvas></div>
+    </div>
+
+    <!-- ROW: RECS + LIFESTYLE -->
+    <div class="two-col">
+        <div class="card d5">
+            <div class="card-head">
+                <div class="card-icon {{ 'red' if pred==1 else 'green' }}">💊</div>
+                <div><div class="card-title">Clinical Recommendations</div><div class="card-sub">Actions based on your result</div></div>
+            </div>
+            <div class="rec-list" id="recList"></div>
+        </div>
+        <div class="card d6">
+            <div class="card-head">
+                <div class="card-icon green">🌿</div>
+                <div><div class="card-title">Lifestyle Guidance</div><div class="card-sub">Daily habits for heart health</div></div>
+            </div>
+            <div class="tips-grid" id="tipsList"></div>
+        </div>
+    </div>
+
+    <!-- ROW: WARNINGS + NEXT STEPS -->
+    <div class="two-col">
+        <div class="card d5">
+            <div class="card-head">
+                <div class="card-icon amber">🚨</div>
+                <div><div class="card-title">Emergency Warning Signs</div><div class="card-sub">Seek immediate care if these occur</div></div>
+            </div>
+            <div id="warnList"></div>
+        </div>
+        <div class="card d6">
+            <div class="card-head">
+                <div class="card-icon blue">🗓</div>
+                <div><div class="card-title">Your Action Plan</div><div class="card-sub">Recommended next steps</div></div>
+            </div>
+            <div class="steps-list" id="stepsList"></div>
+        </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions-bar">
+        <a href="/heart" class="btn-primary">← Make Another Prediction</a>
+        <div class="btn-row">
+            <a href="/select" class="btn-ghost">🏥 Disease Selection</a>
+            <a href="/logout" class="btn-ghost">🔒 Logout</a>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="report-footer">
+        <div class="disclaimer-text">
+            <strong>Medical Disclaimer:</strong> This report is generated by a machine learning model for informational and educational purposes only.
+            It does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional for any health concerns.
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;flex-shrink:0;color:var(--muted);">
+            CareVision v2.0<br>AI Cardiac Module
+        </div>
+    </div>
+
+</div><!-- /page -->
+
+<script>
+/* ─── Template values ──────────────────────────────── */
+const PROB   = Math.min(100, Math.max(0, parseFloat("{{ prob }}")   || 0));
+const HEALTH = Math.min(100, Math.max(0, parseFloat("{{ health }}") || 0));
+const PRED   = parseInt("{{ pred }}") || 0;
+const IS_DAN = PRED === 1;
+
+/* ─── Chart.js global defaults ─────────────────────── */
+Chart.defaults.color = 'rgba(160,200,255,0.55)';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+/* ─── Clock ─────────────────────────────────────────── */
+function tick() {
+    const now = new Date();
+    document.getElementById('nowTime').textContent =
+        now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) +
+        ' · ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+tick(); setInterval(tick, 30000);
+document.getElementById('reportId').textContent = 'RPT-' + Math.random().toString(36).substr(2,6).toUpperCase();
+
+/* ─── Animated counter ──────────────────────────────── */
+function animCount(el, target, suffix, ms) {
+    const s = performance.now();
+    (function loop(now){
+        const t = Math.min((now-s)/ms, 1);
+        const e = 1 - Math.pow(1-t, 3);
+        el.innerHTML = Math.round(e*target) + suffix;
+        if(t<1) requestAnimationFrame(loop);
+    })(s);
+}
+
+/* ─── Risk tier ─────────────────────────────────────── */
+function getRiskTier(p) {
+    if(p < 20) return {label:'Minimal Risk', cls:'lit-low',   color:'var(--green)', band:1};
+    if(p < 40) return {label:'Low Risk',     cls:'lit-low',   color:'var(--green)', band:2};
+    if(p < 60) return {label:'Moderate Risk',cls:'lit-medium',color:'var(--amber)', band:3};
+    if(p < 80) return {label:'High Risk',    cls:'lit-high',  color:'var(--red)',   band:4};
+    return             {label:'Critical Risk',cls:'lit-high', color:'var(--red)',   band:5};
+}
+function getGrade(h) {
+    if(h>=85) return {text:'Excellent',    cls:'safe'};
+    if(h>=70) return {text:'Good',         cls:'safe'};
+    if(h>=55) return {text:'Fair',         cls:'amber'};
+    if(h>=40) return {text:'Below Average',cls:'amber'};
+    return           {text:'Poor',         cls:'danger'};
+}
+function getHealthDesc(h, dan) {
+    if(h>=80&&!dan) return 'Excellent cardiovascular profile. Your indicators are well within healthy ranges.';
+    if(h>=60&&!dan) return 'Good baseline health. Some minor parameters may benefit from attention.';
+    if(h>=60&& dan) return 'Moderate score with elevated risk factors. Lifestyle changes are advisable now.';
+    if(h>=40)       return 'Several indicators below optimal. Medical evaluation is recommended soon.';
+    return 'Multiple high-risk factors detected. Immediate medical consultation is strongly urged.';
+}
+
+/* ─── Render risk bands ─────────────────────────────── */
+function renderBands() {
+    const tier = getRiskTier(PROB);
+    for(let i=1;i<=5;i++){
+        const s = document.getElementById('rs'+i);
+        if(i<=tier.band) s.classList.add(tier.cls);
+    }
+    const lbl = document.getElementById('riskLabel');
+    lbl.textContent = tier.label; lbl.style.color = tier.color;
+}
+
+/* ─── Score breakdown ───────────────────────────────── */
+function renderBreakdown() {
+    const comps = [
+        {label:'Cardiac Output',    pct: Math.min(100,Math.round(HEALTH + (Math.random()*10-5)))},
+        {label:'Blood Pressure',    pct: Math.min(100,Math.round(IS_DAN ? HEALTH-15 : HEALTH+5))},
+        {label:'Cholesterol',       pct: Math.min(100,Math.round(IS_DAN ? HEALTH-20 : HEALTH+10))},
+        {label:'Lifestyle Factors', pct: Math.min(100,Math.round(HEALTH + (Math.random()*8-4)))},
+    ].map(c=>({...c,pct:Math.max(5,c.pct)}));
+    const wrap = document.getElementById('scoreBreakdown');
+    wrap.innerHTML = comps.map(c=>{
+        const col = c.pct>=60 ? '#10b981' : c.pct>=40 ? '#f59e0b' : '#ef4444';
+        return `<div style="margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted2);margin-bottom:4px;">
+            <span>${c.label}</span><span style="font-family:'JetBrains Mono',monospace;color:${col}">${c.pct}%</span>
+          </div>
+          <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;">
+            <div style="height:100%;width:0;border-radius:100px;background:${col};transition:width 1.4s cubic-bezier(.4,0,.2,1);" data-tgt="${c.pct}"></div>
+          </div></div>`;
+    }).join('');
+    setTimeout(()=>{ wrap.querySelectorAll('[data-tgt]').forEach(b=>{ b.style.width=b.dataset.tgt+'%'; }); }, 300);
+}
+
+/* ─── Content renders ───────────────────────────────── */
+const recsHigh = [
+    {title:'Schedule Cardiology Appointment', body:'Book with a cardiologist within 1–2 weeks for full cardiac workup including ECG and echocardiogram.'},
+    {title:'Monitor Blood Pressure Daily',    body:'Use a home BP monitor. Target below 130/80 mmHg. Log readings and share with your doctor.'},
+    {title:'Medication Review',               body:'Bring a full medication list to your doctor. Do not stop any medication without professional advice.'},
+    {title:'Limit Strenuous Exercise',        body:'Until cleared by a physician, avoid high-intensity workouts. Light walking (20 min/day) is generally safe.'},
+];
+const recsLow = [
+    {title:'Annual Routine Checkup',          body:'Schedule a yearly physical including lipid panel, blood glucose, and blood pressure screening.'},
+    {title:'Maintain Healthy Weight',         body:'Keep BMI between 18.5–24.9. Even modest weight loss (5–10%) significantly reduces cardiac risk.'},
+    {title:'Cardiovascular Exercise',         body:'Aim for 150 minutes of moderate-intensity aerobic activity per week — brisk walking, swimming, cycling.'},
+    {title:'Mediterranean-Style Diet',        body:'Prioritize olive oil, fish, legumes, fruits, and vegetables. Limit red meat and processed foods.'},
+];
+function renderRecs() {
+    const recs = IS_DAN ? recsHigh : recsLow;
+    document.getElementById('recList').innerHTML = recs.map((r,i)=>`
+        <div class="rec-item">
+          <div class="rec-num">${String(i+1).padStart(2,'0')}</div>
+          <div class="rec-body"><h5>${r.title}</h5><p>${r.body}</p></div>
+        </div>`).join('');
+}
+
+const tips = [
+    {i:'🚶',t:'7,000–10,000 steps daily'},{i:'💧',t:'6–8 glasses of water daily'},
+    {i:'🥦',t:'5+ portions of fruits & veg'},{i:'😴',t:'7–9 hours quality sleep'},
+    {i:'🧘',t:'Stress management daily'},{i:'🚭',t:'No smoking, limit alcohol'},
+    {i:'🩸',t:'Annual cholesterol check'},{i:'🍎',t:'Limit processed foods'},
+];
+function renderTips() {
+    document.getElementById('tipsList').innerHTML = tips.map(t=>`
+        <div class="tip-pill"><span class="ti">${t.i}</span>${t.t}</div>`).join('');
+}
+
+const warnings = [
+    {i:'❤️‍🔥',t:'Chest pain, pressure, or tightness lasting more than a few minutes.'},
+    {i:'😮‍💨',t:'Sudden shortness of breath at rest or with minimal exertion.'},
+    {i:'💫', t:'Dizziness, fainting, or sudden cold sweats without explanation.'},
+    {i:'🦾', t:'Pain radiating to jaw, neck, back, or left arm — seek emergency care.'},
+];
+function renderWarnings() {
+    document.getElementById('warnList').innerHTML = warnings.map(w=>`
+        <div class="callout warn">
+          <span class="callout-icon">${w.i}</span>
+          <div class="callout-body"><p>${w.t}</p></div>
+        </div>`).join('');
+}
+
+const stepsHigh = [
+    {title:'Print or save this report',  body:'Share with your healthcare provider for informed clinical discussion.'},
+    {title:'Contact your GP today',      body:'Request an urgent referral for cardiac evaluation based on these findings.'},
+    {title:'Track your vitals daily',    body:'Monitor BP, heart rate, and weight. Use a health app to log trends.'},
+    {title:'Know your emergency plan',   body:'Keep the nearest emergency department address and emergency contacts accessible.'},
+];
+const stepsLow = [
+    {title:'Save this report',           body:'Archive as a baseline reference for future comparison screenings.'},
+    {title:'Annual cardiac screening',   body:'Repeat this screening yearly to monitor changes over time.'},
+    {title:'Optimize your lifestyle',    body:'Use the guidance on this page to further reduce your long-term risk.'},
+    {title:'Share with your doctor',     body:'Discuss results during your next scheduled checkup for professional context.'},
+];
+function renderSteps() {
+    const steps = IS_DAN ? stepsHigh : stepsLow;
+    document.getElementById('stepsList').innerHTML = steps.map((s,i)=>`
+        <div class="step-item">
+          <div class="step-num">${i+1}</div>
+          <div class="step-text"><h5>${s.title}</h5><p>${s.body}</p></div>
+        </div>`).join('');
+}
+
+/* ─── Gauge animation ───────────────────────────────── */
+function animGauge() {
+    const arc = document.getElementById('gaugeArc');
+    const total = 252;
+    setTimeout(()=>{ arc.style.strokeDashoffset = total - (PROB/100)*total; }, 100);
+    const gn = document.getElementById('gaugeNum');
+    const s = performance.now();
+    (function loop(now){
+        const t = Math.min((now-s)/1300,1);
+        gn.textContent = Math.round((1-Math.pow(1-t,3))*PROB)+'%';
+        if(t<1) requestAnimationFrame(loop);
+    })(s);
+}
+
+/* ─── Ring animation ────────────────────────────────── */
+function animRing() {
+    const circ = 2*Math.PI*45;
+    const ring = document.getElementById('ringFill');
+    ring.style.strokeDasharray = circ;
+    ring.style.strokeDashoffset = circ;
+    setTimeout(()=>{ ring.style.strokeDashoffset = circ - (HEALTH/100)*circ; }, 150);
+    animCount(document.getElementById('ringNum'), HEALTH, '', 1400);
+}
+
+/* ─── Charts ────────────────────────────────────────── */
+const chartTooltip = { backgroundColor:'#0b1628', borderColor:'rgba(59,130,246,0.25)', borderWidth:1 };
+
+function buildDoughnut() {
+    const remaining = 100 - PROB;
+    const uncertainty = Math.round(remaining*0.15);
+    const reserve = remaining - uncertainty;
+    new Chart(document.getElementById('doughnutChart'), {
+        type:'doughnut',
+        data:{
+            labels:['Risk Factor','Health Reserve','Uncertainty'],
+            datasets:[{
+                data:[Math.round(PROB), reserve, uncertainty],
+                backgroundColor:[
+                    IS_DAN ? 'rgba(239,68,68,0.75)':'rgba(16,185,129,0.75)',
+                    'rgba(59,130,246,0.65)','rgba(139,92,246,0.5)'
+                ],
+                borderColor:[IS_DAN?'#ef4444':'#10b981','#3b82f6','#8b5cf6'],
+                borderWidth:1.5, hoverOffset:6
+            }]
+        },
+        options:{
+            cutout:'68%', responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, tooltip:{...chartTooltip, callbacks:{label:c=>` ${c.label}: ${c.parsed}%`}} },
+            animation:{duration:1400,easing:'easeInOutQuart'}
+        }
+    });
+}
+
+function buildRadar() {
+    const base = HEALTH/100, inv = 1-(PROB/100);
+    function jit(v){ return Math.min(100, Math.max(5, Math.round((v+(Math.random()*0.15-0.075))*100))); }
+    new Chart(document.getElementById('radarChart'), {
+        type:'radar',
+        data:{
+            labels:['Blood Pressure','Cholesterol','Blood Sugar','ECG Pattern','Heart Rate','Age Factor'],
+            datasets:[{
+                label:'Your Profile',
+                data:[jit(inv),jit(base),jit(base*0.95),jit(inv*0.9),jit(base*1.05),jit(inv*0.85)],
+                backgroundColor:IS_DAN?'rgba(239,68,68,0.12)':'rgba(16,185,129,0.12)',
+                borderColor:IS_DAN?'#ef4444':'#10b981',
+                pointBackgroundColor:IS_DAN?'#ef4444':'#10b981',
+                pointBorderColor:'#fff', pointBorderWidth:1.5,
+                borderWidth:2, pointRadius:4
+            }]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            scales:{ r:{
+                min:0,max:100,
+                ticks:{display:false,stepSize:25},
+                grid:{color:'rgba(255,255,255,0.06)'},
+                angleLines:{color:'rgba(255,255,255,0.06)'},
+                pointLabels:{font:{size:11},color:'rgba(160,200,255,0.65)'}
+            }},
+            plugins:{legend:{display:false}, tooltip:chartTooltip},
+            animation:{duration:1400,easing:'easeInOutQuart'}
+        }
+    });
+}
+
+function buildLine() {
+    const ages = ['20–25','26–30','31–35','36–40','41–45','46–50','51–55','56–60','61–65','65+'];
+    const popCurve = [8,10,14,20,28,38,50,62,72,80];
+    new Chart(document.getElementById('lineChart'), {
+        type:'line',
+        data:{
+            labels:ages,
+            datasets:[
+                {
+                    label:'Population Avg Risk',
+                    data:popCurve,
+                    borderColor:'rgba(139,92,246,0.7)',
+                    backgroundColor:'rgba(139,92,246,0.06)',
+                    borderWidth:2, pointRadius:3, tension:0.4, fill:true
+                },
+                {
+                    label:'Your Risk Score',
+                    data:ages.map(()=>PROB),
+                    borderColor:IS_DAN?'#ef4444':'#10b981',
+                    backgroundColor:'transparent',
+                    borderWidth:2.5, borderDash:[6,4], pointRadius:0
+                }
+            ]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            scales:{
+                x:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{font:{size:10},color:'rgba(160,200,255,0.45)'}},
+                y:{min:0,max:100, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{font:{size:10},color:'rgba(160,200,255,0.45)',callback:v=>v+'%'}}
+            },
+            plugins:{
+                legend:{display:true, labels:{boxWidth:12,font:{size:11},color:'rgba(160,200,255,0.6)',padding:16}},
+                tooltip:{...chartTooltip, callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y}%`}}
+            },
+            animation:{duration:1400,easing:'easeInOutQuart'}
+        }
+    });
+}
+
+function buildBar() {
+    const factors = ['Blood Pressure','Cholesterol','Resting ECG','Max Heart Rate','Fasting Blood Sugar','ST Depression','Age Impact'];
+    const base = HEALTH/100, inv = 1-(PROB/100);
+    function jit2(v){ return Math.min(100,Math.max(5,Math.round((v+(Math.random()*0.12-0.06))*100))); }
+    const vals = [jit2(inv),jit2(base),jit2(base*0.9),jit2(inv*0.95),jit2(base*1.05),jit2(inv*0.88),jit2(base*0.92)];
+    const colors = vals.map(v => v>=60 ? 'rgba(16,185,129,0.75)' : v>=40 ? 'rgba(245,158,11,0.75)' : 'rgba(239,68,68,0.75)');
+    const borders = vals.map(v => v>=60 ? '#10b981' : v>=40 ? '#f59e0b' : '#ef4444');
+    new Chart(document.getElementById('barChart'), {
+        type:'bar',
+        data:{
+            labels:factors,
+            datasets:[{
+                label:'Indicator Score',
+                data:vals,
+                backgroundColor:colors,
+                borderColor:borders,
+                borderWidth:1.5,
+                borderRadius:6,
+                borderSkipped:false
+            }]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false, indexAxis:'x',
+            scales:{
+                x:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{font:{size:10},color:'rgba(160,200,255,0.5)'}},
+                y:{min:0,max:100, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{font:{size:10},color:'rgba(160,200,255,0.45)',callback:v=>v+'%'}}
+            },
+            plugins:{
+                legend:{display:false},
+                tooltip:{...chartTooltip, callbacks:{label:c=>` Score: ${c.parsed.y}%`}}
+            },
+            animation:{duration:1400,easing:'easeInOutQuart'}
+        }
+    });
+}
+
+/* ─── BOOT ──────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', ()=>{
+    const tier  = getRiskTier(PROB);
+    const grade = getGrade(HEALTH);
+
+    // Hero large number
+    animCount(document.getElementById('bigProb'), PROB, '<span style="font-size:22px">%</span>', 1100);
+
+    // Metric boxes
+    animCount(document.getElementById('metricProb'),   PROB,   '<span class="unit">%</span>',    1100);
+    animCount(document.getElementById('metricHealth'), HEALTH, '<span class="unit">/100</span>', 1200);
+    setTimeout(()=>{
+        document.getElementById('barProb').style.width   = PROB   + '%';
+        document.getElementById('barHealth').style.width = HEALTH + '%';
+        document.getElementById('riskTier').textContent  = tier.label;
+    }, 200);
+
+    // Gauge + ring
+    animGauge();
+    animRing();
+
+    // Bands
+    setTimeout(renderBands, 300);
+
+    // Health desc + grade
+    document.getElementById('healthDesc').textContent = getHealthDesc(HEALTH, IS_DAN);
+    const g = document.getElementById('ringGrade');
+    g.textContent = grade.text; g.className = 'ring-grade ' + grade.cls;
+
+    // Score breakdown mini bars
+    renderBreakdown();
+
+    // Content
+    renderRecs();
+    renderTips();
+    renderWarnings();
+    renderSteps();
+
+    // Charts (slight delay to let layout settle)
+    setTimeout(()=>{ buildDoughnut(); buildRadar(); buildLine(); buildBar(); }, 200);
+});
+</script>
+</body>
+</html>

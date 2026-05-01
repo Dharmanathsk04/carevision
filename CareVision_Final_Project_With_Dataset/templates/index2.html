@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CareVision | Diabetes Prediction</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #020617, #0f172a);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    width: 450px;
+    max-width: 95%;
+    background: rgba(15, 23, 42, 0.9);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(34, 197, 94, 0.3);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #22c55e;
+    font-size: 28px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    font-size: 14px;
+    display: block;
+    color: #cbd5e1;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(2, 6, 23, 0.8);
+    color: #e5e7eb;
+    font-size: 15px;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.predict-btn {
+    width: 100%;
+    padding: 15px;
+    margin: 25px 0 15px 0;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+    display: block;
+}
+
+.predict-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+}
+
+.api-btn {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0 20px 0;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    color: white;
+}
+
+.api-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+}
+
+.result {
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(2, 6, 23, 0.8);
+    border-radius: 12px;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    display: none;
+}
+
+.result.show {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 15px;
+    color: #38bdf8;
+    text-decoration: none;
+    text-align: center;
+    width: 100%;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.hint {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>🩸 Diabetes Prediction</h2>
+
+    <!-- FORM FOR REGULAR SUBMISSION -->
+    <form method="post" action="/diabetes" id="diabetesForm">
+        
+        <div class="form-group">
+            <label for="gender">Gender</label>
+            <select name="gender" id="gender" required>
+                <option value="">Select Gender</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="other">Other</option>
+            </select>
+            <div class="hint">Select biological gender</div>
+        </div>
+
+        <div class="form-group">
+            <label for="age">Age (Years)</label>
+            <input type="number" name="age" id="age" min="1" max="120" required>
+            <div class="hint">Patient's current age</div>
+        </div>
+
+        <div class="form-group">
+            <label for="hypertension">Hypertension</label>
+            <select name="hypertension" id="hypertension" required>
+                <option value="">Select</option>
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </select>
+            <div class="hint">Diagnosed with hypertension?</div>
+        </div>
+
+        <div class="form-group">
+            <label for="heart_disease">Heart Disease</label>
+            <select name="heart_disease" id="heart_disease" required>
+                <option value="">Select</option>
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </select>
+            <div class="hint">History of heart disease?</div>
+        </div>
+
+        <div class="form-group">
+            <label for="smoking_history">Smoking History</label>
+            <select name="smoking_history" id="smoking_history" required>
+                <option value="">Select</option>
+                <option value="never">Never</option>
+                <option value="former">Former</option>
+                <option value="current">Current</option>
+                <option value="not current">Not Current</option>
+                <option value="ever">Ever</option>
+            </select>
+            <div class="hint">Select smoking history category</div>
+        </div>
+
+        <div class="form-group">
+            <label for="bmi">BMI (Body Mass Index)</label>
+            <input type="number" step="0.1" name="bmi" id="bmi" min="10" max="80" required>
+            <div class="hint">Example: 24.5</div>
+        </div>
+
+        <div class="form-group">
+            <label for="hba1c_level">HbA1c Level (%)</label>
+            <input type="number" step="0.1" name="hba1c_level" id="hba1c_level" min="3" max="15" required>
+            <div class="hint">Glycated hemoglobin level (Normal: 4-5.6%)</div>
+        </div>
+
+        <div class="form-group">
+            <label for="blood_glucose_level">Blood Glucose Level (mg/dL)</label>
+            <input type="number" name="blood_glucose_level" id="blood_glucose_level" min="70" max="300" required>
+            <div class="hint">Fasting blood glucose level (Normal: 70-100 mg/dL)</div>
+        </div>
+
+        <!-- MAIN PREDICT BUTTON -->
+        <button type="submit" class="predict-btn">🔍 Predict Diabetes Risk</button>
+    </form>
+
+    <!-- ALTERNATIVE API BUTTON -->
+    <button onclick="predictWithAPI()" class="api-btn">
+        🚀 Predict with API (Alternative Method)
+    </button>
+
+    <div class="result" id="apiResult"></div>
+
+    <a href="/select" class="back-link">← Back to Disease Selection</a><br>
+    <a href="/logout" class="back-link" style="margin-top: 10px;">Logout</a>
+</div>
+
+<script>
+function predictWithAPI() {
+    const gender = document.getElementById('gender').value;
+    const age = document.getElementById('age').value;
+    const hypertension = document.getElementById('hypertension').value;
+    const heart_disease = document.getElementById('heart_disease').value;
+    const smoking_history = document.getElementById('smoking_history').value;
+    const bmi = document.getElementById('bmi').value;
+    const hba1c_level = document.getElementById('hba1c_level').value;
+    const blood_glucose_level = document.getElementById('blood_glucose_level').value;
+
+    if (!gender || !age || !hypertension || !heart_disease || 
+        !smoking_history || !bmi || !hba1c_level || !blood_glucose_level) {
+        showResult("Please fill all fields before predicting!", "error");
+        return;
+    }
+
+    showResult("Processing prediction...", "loading");
+
+    fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            disease: "diabetes",
+            inputs: [
+                gender,
+                parseFloat(age),
+                parseInt(hypertension),
+                parseInt(heart_disease),
+                smoking_history,
+                parseFloat(bmi),
+                parseFloat(hba1c_level),
+                parseFloat(blood_glucose_level)
+            ]
+        })
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.error) {
+            showResult(`Error: ${data.error}`, "error");
+        } else {
+            showResult(`
+                <h3>🩸 Diabetes Prediction Result</h3>
+                <p><strong>Risk Status:</strong> ${data.prediction === 1 ? "🔴 HIGH RISK" : "🟢 LOW RISK"}</p>
+                <p><strong>Probability:</strong> ${data.probability}%</p>
+                <p><strong>Health Score:</strong> ${data.health_score}/100</p>
+                <p><small>Note: Using API method. For detailed results page, use the main Predict button above.</small></p>
+            `, "success");
+        }
+    })
+    .catch(err => {
+        showResult("Error connecting to server. Please try the main Predict button instead.", "error");
+        console.error("API Error:", err);
+    });
+}
+
+function showResult(message, type) {
+    const resultDiv = document.getElementById("apiResult");
+    resultDiv.innerHTML = message;
+    resultDiv.className = "result show";
+    
+    if (type === "error") {
+        resultDiv.style.borderColor = "#ef4444";
+        resultDiv.style.color = "#fca5a5";
+    } else if (type === "success") {
+        resultDiv.style.borderColor = "#22c55e";
+        resultDiv.style.color = "#86efac";
+    } else {
+        resultDiv.style.borderColor = "#3b82f6";
+        resultDiv.style.color = "#93c5fd";
+    }
+}
+</script>
+
+</body>
+</html>
